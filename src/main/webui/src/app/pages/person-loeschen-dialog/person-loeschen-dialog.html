@@ -1,0 +1,12 @@
+<h2 mat-dialog-title i18n>Person löschen?</h2>
+<mat-dialog-content i18n>
+  Soll {{ data.vorname }} {{ data.nachname }} wirklich gelöscht werden?
+  Die Person bleibt im Audit-Trail erhalten (Soft-Delete).
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="abbrechen()" i18n>Abbrechen</button>
+  <button mat-flat-button color="warn" type="button" (click)="bestaetigen()" i18n>
+    <mat-icon>delete</mat-icon>
+    Löschen
+  </button>
+</mat-dialog-actions>

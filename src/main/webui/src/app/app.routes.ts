@@ -23,6 +23,11 @@ export const routes: Routes = [
         path: 'personen',
         loadComponent: () => import('./pages/person-liste/person-liste').then((m) => m.PersonListe),
       },
+      {
+        path: 'personen/:id',
+        loadComponent: () =>
+          import('./pages/person-detail/person-detail').then((m) => m.PersonDetail),
+      },
     ],
   },
 ];

@@ -1,0 +1,42 @@
+<h2 mat-dialog-title i18n>Neue Person erfassen</h2>
+
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <mat-dialog-content>
+    <mat-form-field appearance="outline">
+      <mat-label i18n>Vorname</mat-label>
+      <input matInput formControlName="vorname" required autocomplete="given-name" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label i18n>Nachname</mat-label>
+      <input matInput formControlName="nachname" required autocomplete="family-name" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label i18n>E-Mail</mat-label>
+      <input matInput type="email" formControlName="email" required autocomplete="email" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label i18n>Organisation</mat-label>
+      <input matInput formControlName="organisation" autocomplete="organization" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label i18n>Funktion</mat-label>
+      <input matInput formControlName="funktion" autocomplete="organization-title" />
+    </mat-form-field>
+    @if (error()) {
+      <p class="error">{{ error() }}</p>
+    }
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="cancel()" i18n>Abbrechen</button>
+    <button
+      mat-flat-button
+      color="primary"
+      type="submit"
+      [disabled]="submitting() || form.invalid"
+      i18n
+    >
+      Speichern
+    </button>
+  </mat-dialog-actions>
+</form>

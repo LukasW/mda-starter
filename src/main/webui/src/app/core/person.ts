@@ -26,4 +26,22 @@ export class PersonService {
   }): Observable<{ id: string }> {
     return this.api.post<{ id: string }>(this.basePath, payload);
   }
+
+  aendern(
+    id: string,
+    payload: {
+      vorname: string;
+      nachname: string;
+      email: string;
+      organisation?: string | null;
+      funktion?: string | null;
+      expectedVersion: number;
+    },
+  ): Observable<void> {
+    return this.api.put<void>(`${this.basePath}/${id}`, payload);
+  }
+
+  loeschen(id: string, expectedVersion: number): Observable<void> {
+    return this.api.delete<void>(`${this.basePath}/${id}`, { expectedVersion });
+  }
 }

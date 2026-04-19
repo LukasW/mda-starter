@@ -1,0 +1,69 @@
+<div class="header">
+  <a mat-icon-button routerLink="/personen" aria-label="Zurueck zur Liste" i18n-aria-label>
+    <mat-icon>arrow_back</mat-icon>
+  </a>
+  <h2 i18n>Person</h2>
+  @if (istExtern()) {
+    <mat-chip color="accent" class="extern-chip" disableRipple i18n>Extern – read-only</mat-chip>
+  }
+</div>
+
+@if (loading()) {
+  <mat-spinner diameter="32"></mat-spinner>
+} @else if (!person()) {
+  <p class="error" i18n>Person nicht gefunden.</p>
+} @else {
+  <mat-card>
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <mat-form-field appearance="outline">
+        <mat-label i18n>Vorname</mat-label>
+        <input matInput formControlName="vorname" required />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label i18n>Nachname</mat-label>
+        <input matInput formControlName="nachname" required />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label i18n>E-Mail</mat-label>
+        <input matInput type="email" formControlName="email" required />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label i18n>Organisation</mat-label>
+        <input matInput formControlName="organisation" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label i18n>Funktion</mat-label>
+        <input matInput formControlName="funktion" />
+      </mat-form-field>
+
+      @if (error()) {
+        <p class="error">{{ error() }}</p>
+      }
+
+      <div class="actions">
+        @if (istIntern()) {
+          <button
+            mat-stroked-button
+            color="warn"
+            type="button"
+            [disabled]="saving()"
+            (click)="loeschen()"
+            i18n
+          >
+            Loeschen
+          </button>
+        }
+        <span class="spacer"></span>
+        <button
+          mat-flat-button
+          color="primary"
+          type="submit"
+          [disabled]="saving() || form.invalid || istExtern()"
+          i18n
+        >
+          Speichern
+        </button>
+      </div>
+    </form>
+  </mat-card>
+}

@@ -32,6 +32,8 @@ public class PersonPanacheRepository implements
         target.externeId = person.externeId();
         target.erstelltAm = person.erstelltAm();
         target.modifiedAt = person.modifiedAt();
+        target.deletedAt = person.deletedAt();
+        // versionNumber: Hibernate verwaltet @Version selbst — nicht aus Domain ueberschreiben.
         if (existing == null) {
             persist(target);
         }
@@ -39,7 +41,11 @@ public class PersonPanacheRepository implements
 
     @Override
     public Optional<Person> findById(PersonId id) {
-        return Optional.ofNullable(findById(id.value())).map(PersonPanacheRepository::toDomain);
+        PersonJpaEntity e = findById(id.value());
+        if (e == null || e.deletedAt != null) {
+            return Optional.empty();
+        }
+        return Optional.of(toDomain(e));
     }
 
     @Override
@@ -47,8 +53,10 @@ public class PersonPanacheRepository implements
         int size = Math.max(limit, 1);
         String term = query == null || query.isBlank() ? "%" : "%" + query.toLowerCase() + "%";
         return find("""
-                lower(vorname) like ?1 or lower(nachname) like ?1
-                or lower(email) like ?1 or lower(coalesce(organisation,'')) like ?1
+                deletedAt is null and (
+                    lower(vorname) like ?1 or lower(nachname) like ?1
+                    or lower(email) like ?1 or lower(coalesce(organisation,'')) like ?1
+                )
                 """, term)
                 .page(0, size)
                 .list()
@@ -62,6 +70,14 @@ public class PersonPanacheRepository implements
                 new PersonId(e.id), e.tenantId, e.vorname, e.nachname,
                 new Email(e.email), e.organisation, e.funktion,
                 PersonenQuelle.valueOf(e.quelleTyp), e.externeId,
-                e.erstelltAm, e.modifiedAt, e.versionNumber);
+                e.erstelltAm, e.modifiedAt, e.deletedAt, e.versionNumber);
+    }
+
+    // mda-generator: manual-edits-below
+
+    @Override
+    public void softDelete(Person person) {
+        // Person.loeschen() hat deletedAt bereits gesetzt — hier nur persistieren.
+        save(person);
     }
 }

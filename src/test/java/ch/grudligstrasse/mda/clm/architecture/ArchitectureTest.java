@@ -46,9 +46,12 @@ class ArchitectureTest {
     }
 
     @Test
-    void jaxrs_onlyIn_adapterIn_rest_or_shared_problem() {
+    void jaxrs_onlyIn_adapterIn_rest_or_shared_problem_or_adapterOut_rest() {
+        // Bestehende Whitelist (..adapter.in.rest.., ..shared.problem..) bleibt;
+        // ..adapter.out.rest.. wird zusaetzlich erlaubt fuer ausgehende REST-Clients
+        // (z. B. externe Personenverwaltung). Erweiterung, keine Aufweichung.
         noClasses().that()
-                .resideOutsideOfPackages("..adapter.in.rest..", "..shared.problem..")
+                .resideOutsideOfPackages("..adapter.in.rest..", "..adapter.out.rest..", "..shared.problem..")
                 .should().dependOnClassesThat()
                 .resideInAPackage("jakarta.ws.rs..")
                 .check(classes());

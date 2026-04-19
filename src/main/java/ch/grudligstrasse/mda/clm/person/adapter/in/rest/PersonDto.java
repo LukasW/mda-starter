@@ -10,7 +10,8 @@ public record PersonDto(
         String organisation,
         String funktion,
         String quelleTyp,
-        String externeId) {
+        String externeId,
+        long versionNumber) {
 
     public static PersonDto of(Person p) {
         return new PersonDto(
@@ -21,6 +22,7 @@ public record PersonDto(
                 p.organisation(),
                 p.funktion(),
                 p.quelleTyp().name(),
-                p.externeId());
+                p.externeId(),
+                p.versionNumber());
     }
 }

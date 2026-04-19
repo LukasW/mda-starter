@@ -1,38 +1,54 @@
-<h2>Personen</h2>
+<div class="header">
+  <h2 i18n>Personen</h2>
+  <span class="spacer"></span>
+  <button mat-flat-button color="primary" (click)="openErfassen()" i18n>
+    <mat-icon>add</mat-icon>
+    Neue Person
+  </button>
+</div>
 
 <form [formGroup]="searchForm" (ngSubmit)="search()" class="search">
   <mat-form-field appearance="outline">
-    <mat-label>Suchbegriff (Name, Mail, Organisation)</mat-label>
+    <mat-label i18n>Suche (Name, Mail, Organisation)</mat-label>
     <input matInput formControlName="query" />
+    @if (searchForm.controls.query.errors?.['uuidNichtErlaubt']) {
+      <mat-error i18n>Bitte nach Name, Mail oder Organisation suchen.</mat-error>
+    }
   </mat-form-field>
-  <button mat-flat-button color="primary" type="submit">Suchen</button>
+  <button mat-stroked-button color="primary" type="submit" i18n>Suchen</button>
 </form>
 
 @if (loading()) {
   <mat-spinner diameter="32"></mat-spinner>
 } @else if (error()) {
   <p class="error">{{ error() }}</p>
-} @else if (results().length === 0) {
-  <p>Keine Treffer.</p>
+} @else if (!hasResults()) {
+  <p i18n>Keine Personen vorhanden.</p>
 } @else {
-  <table mat-table [dataSource]="results()" class="mat-elevation-z1">
+  <table mat-table [dataSource]="dataSource" class="mat-elevation-z1 clickable">
     <ng-container matColumnDef="name">
-      <th mat-header-cell *matHeaderCellDef>Name</th>
+      <th mat-header-cell *matHeaderCellDef i18n>Name</th>
       <td mat-cell *matCellDef="let p">{{ p.vorname }} {{ p.nachname }}</td>
     </ng-container>
     <ng-container matColumnDef="email">
-      <th mat-header-cell *matHeaderCellDef>E-Mail</th>
+      <th mat-header-cell *matHeaderCellDef i18n>E-Mail</th>
       <td mat-cell *matCellDef="let p">{{ p.email }}</td>
     </ng-container>
     <ng-container matColumnDef="organisation">
-      <th mat-header-cell *matHeaderCellDef>Organisation</th>
+      <th mat-header-cell *matHeaderCellDef i18n>Organisation</th>
       <td mat-cell *matCellDef="let p">{{ p.organisation }}</td>
     </ng-container>
     <ng-container matColumnDef="quelle">
-      <th mat-header-cell *matHeaderCellDef>Quelle</th>
+      <th mat-header-cell *matHeaderCellDef i18n>Quelle</th>
       <td mat-cell *matCellDef="let p"><mat-chip>{{ p.quelleTyp }}</mat-chip></td>
     </ng-container>
     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    <tr
+      mat-row
+      *matRowDef="let row; columns: displayedColumns"
+      (click)="oeffnen(row)"
+      tabindex="0"
+    ></tr>
   </table>
+  <mat-paginator [pageSize]="25" [pageSizeOptions]="[10, 25, 50]"></mat-paginator>
 }

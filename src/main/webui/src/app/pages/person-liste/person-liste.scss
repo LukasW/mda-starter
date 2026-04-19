@@ -1,3 +1,14 @@
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.spacer {
+  flex: 1;
+}
+
 .search {
   display: flex;
   align-items: baseline;
@@ -6,9 +17,17 @@
 }
 
 .error {
-  color: #b3261e;
+  color: var(--mat-sys-error, #b3261e);
 }
 
 table {
   width: 100%;
+}
+
+table.clickable tr[mat-row] {
+  cursor: pointer;
+}
+
+table.clickable tr[mat-row]:hover {
+  background: rgba(0, 0, 0, 0.04);
 }

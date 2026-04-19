@@ -27,6 +27,12 @@ export class ApiClient {
       .pipe(catchError((err) => this.mapError(err)));
   }
 
+  delete<T>(path: string, params?: Record<string, string | number | boolean>): Observable<T> {
+    return this.http
+      .delete<T>(path, { params: asHttpParams(params) })
+      .pipe(catchError((err) => this.mapError(err)));
+  }
+
   private mapError(err: HttpErrorResponse): Observable<never> {
     const pd = (err.error as ProblemDetail | undefined) ?? undefined;
     const api: ApiError = {
