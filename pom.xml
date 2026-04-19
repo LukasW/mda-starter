@@ -19,6 +19,7 @@
         <cucumber.version>7.34.0</cucumber.version>
         <archunit.version>1.4.1</archunit.version>
         <quinoa.version>2.8.1</quinoa.version>
+        <quarkus-cucumber.version>1.3.0</quarkus-cucumber.version>
     </properties>
 
     <dependencyManagement>
@@ -108,13 +109,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>io.cucumber</groupId>
-            <artifactId>cucumber-junit-platform-engine</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.platform</groupId>
-            <artifactId>junit-platform-suite</artifactId>
+            <groupId>io.quarkiverse.cucumber</groupId>
+            <artifactId>quarkus-cucumber</artifactId>
+            <version>${quarkus-cucumber.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

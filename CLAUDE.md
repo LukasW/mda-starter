@@ -1,24 +1,22 @@
 <!-- mda-generator:begin -->
-# CLAUDE.md — Quarkus MDA Starter
+# CLAUDE.md — CLM (Contract Lifecycle Management)
 
-Dieses Dokument orientiert Claude Code im Projekt. Es beschreibt **nur** Architektur, Harness und Workflow — fachliche Inhalte stehen in der Fachspec, die pro Projekt angelegt wird.
-
-## Zustand: leerer Starter
-
-**Dieses Repository enthaelt noch keine Fachspec und keinen Applikationscode.** Es ist das MDA-Grundgeruest: Harness (`.claude/`), Maven-Setup (`pom.xml`, `mvnw`), Quarkus-Dockerfiles unter `src/main/docker/`, Cucumber-JUnit-Konfiguration unter `src/test/resources/` und Doku-Skelette (`specs/features/`).
-
-Der naechste Schritt ist immer **`/mda-init`**. Eingabe:
-
-- `specs/description.md` mit einer Freitext-/Markdown-Beschreibung der Zieldomaene, **oder**
-- `specs/model/*.puml` (PlantUML-Klassen-/State-/Process-Diagramme), optional `*.bpmn`, `*.rules.yaml`.
-
-`/mda-init` erzeugt: Fachspec unter `specs/model/00-spec-<slug>.md`, DDD-Aggregates, Ports/Adapter, BPF, Angular-App via `ng new webui`, Flyway-Start-Migrationen, ArchitectureTest, BDD-Skelette, `docs/architecture/arc42.md` + ADRs 0001..0009. Danach gilt: **Fachspec ist die einzige fachliche Quelle**, Abweichungen Code↔Spec sind Bugs.
+Dieses Dokument orientiert Claude Code im Projekt. Die **fachliche Quelle der Wahrheit** ist `specs/model/00-spec-clm.md`. Abweichungen Code ↔ Fachspec sind Bugs.
 
 ## Was ist das?
 
-Quarkus 3.34.5 MDA-Starter. Er *wird*, nach `mda-init`: hexagonale Architektur (Port & Adapter), DDD, Business Process Flow (BPF) als Panache-Zustandsautomat, Angular 21 + Material SPA unter `src/main/webui`, via Quarkus Quinoa 2.8.1 in den Backend-Build integriert.
+Contract-Lifecycle-Management (CLM) auf Quarkus 3.34.5 + Angular 21 + Material (via Quinoa 2.8.1). Modularer Monolith, hexagonale Architektur (Port & Adapter), DDD, Business Process Flow (BPF) als Panache-Zustandsautomat.
 
-Die **verbindlichen MDA-Regeln** liegen vollstaendig unter `.claude/skills/_shared/` — sie sind auch im leeren Starter bereits bindend fuer `mda-init`.
+Bounded Contexts:
+
+- **`contract`** — Vertraege, Versionen, Vertragsparteien, BPF-Lifecycle (9 Stages: `ENTWURF` → … → `ARCHIVIERT` → `ABGELAUFEN|GEKUENDIGT`).
+- **`person`** — Interne Personenverwaltung + optionaler Snapshot-Cache aus einer externen Personenverwaltung (Feature-gegated per `clm.person.externe-verwaltung.enabled`).
+
+Optionale externe Integrationen (Ports definiert, Adapter-Stubs) — Anbieter-Wahl steht gem. AE-02/AE-03 aus:
+
+- externes Archiv (`ARCHIV_EXTERN` SpeicherTyp, `clm.archiv.extern.enabled`),
+- Personenverwaltung (s. o.),
+- Signatur-Dienstleister (`clm.signatur.anbieter=stub`).
 
 ## Schnellstart
 
@@ -29,35 +27,49 @@ Die **verbindlichen MDA-Regeln** liegen vollstaendig unter `.claude/skills/_shar
 ```
 
 Dev-Endpunkte:
-- `http://localhost:8080/` — Angular SPA (Quinoa proxy auf ng dev-server :4200)
+- `http://localhost:8080/` — Angular SPA (Quinoa proxy auf `ng serve` :4200)
+- `http://localhost:8080/api/v1/vertraege` — Vertrags-REST (`/api/v1/vertraege/{id}/process/contract/trigger/{trigger}` für BPF)
+- `http://localhost:8080/api/v1/personen`
 - `http://localhost:8080/q/health/ready`
 - `http://localhost:8080/openapi` / `http://localhost:8080/q/swagger-ui`
 
-REST-Pfade: siehe Fachspec.
+## Paket-Layout
 
-## Paket-Layout (je BC identisch, nach `mda-init`)
+Root-Package: `ch.grudligstrasse.mda.clm`.
 
 ```
-<root-package>
+ch.grudligstrasse.mda.clm
   shared/
-    events/      DomainEvent + InMemoryDomainEventPublisher
-    problem/     DomainException + ProblemDetail + ExceptionMapper
-    process/     BpfDefinition + BpfService + BpfInstance/TransitionLog-Entities
-  <bc>/                         # BC-Namen: siehe Fachspec
-    domain/              Aggregates, VOs, Enums, sealed Domain-Events, BPF-Definition
+    events/    DomainEvent + InMemoryDomainEventPublisher
+    problem/   DomainException + ProblemDetail + ExceptionMapper + ValidationExceptionMapper
+    process/   BpfDefinition + BpfService + BpfInstanceEntity + BpfTransitionLogEntity + Repositories
+  contract/
+    domain/           Vertrag, VertragId, VertragsTyp, DokumentReferenz, SpeicherTyp,
+                      VertragsPartei, VertragsVersion, ParteiRolle,
+                      event/ (sealed VertragDomainEvent + 4 Records),
+                      process/VertragStage + VertragLifecycle
     application/
-      port/in/           UseCase-Interfaces (Command/Query-Records)
-      port/out/          Repository-Interfaces
-      service/           @ApplicationScoped Anwendungsservice (Transaktionsgrenze)
+      port/in/        VertragErstellenUseCase, VertragMetadatenSetzenUseCase,
+                      VertragDokumentHochladenUseCase, VertragPersonZuordnenUseCase,
+                      VertragTriggerUseCase, VertragAbrufenQuery
+      port/out/       VertragRepository
+      service/        VertragApplicationService
     adapter/
-      in/rest/           JAX-RS-Resources + DTOs + Request-Records (Validation)
-      in/scheduler/      Quarkus-@Scheduled-Jobs (wo fachlich benoetigt)
-      out/persistence/   Panache-Entities + Repositories + Adapter (Port-Out-Impl)
+      in/rest/        VertragResource + VertragDto
+      out/persistence/ VertragJpaEntity, VertragsParteiJpaEntity, VertragsVersionJpaEntity,
+                       VertragMapper, VertragPanacheRepository
+  person/
+    domain/           Person, PersonId, Email, PersonenQuelle
+    application/
+      port/in/        PersonErfassenUseCase, PersonSuchenQuery
+      port/out/       PersonRepository, ExternePersonenverwaltungClient
+      service/        PersonApplicationService
+    adapter/
+      in/rest/        PersonResource + PersonDto
+      out/persistence/ PersonJpaEntity, PersonPanacheRepository, DisabledExternePersonenverwaltungClient
 ```
 
-Konkrete BC- und Root-Package-Namen: **Fachspec**.
-
-## Frontend (Angular 21 + Material, nach `mda-init`)
+## Frontend
 
 ```
 src/main/webui/
@@ -66,106 +78,96 @@ src/main/webui/
     main.ts, index.html, styles.scss
     app/
       app.ts, app.config.ts, app.routes.ts
-      core/                 Services (siehe Fachspec)
-      layout/app-shell/     MatToolbar + MatSidenav Shell
-      pages/                Standalone-Components (siehe Fachspec)
+      core/                 api-client, contract, person, models
+      layout/app-shell/     MatToolbar + MatSidenav + MatNavList Shell
+      pages/                vertrag-liste, vertrag-erfassen, vertrag-detail, person-liste
 ```
 
-Konventionen:
-- **Standalone Components**, `ChangeDetectionStrategy.OnPush`, `inject()` statt Constructor-DI.
-- **Signals** (`signal`, `computed`) fuer lokalen State; Observables an Service-Grenzen.
-- **Reactive Forms** + Jakarta-Validation-aequivalente Regeln (required/min/maxLength).
-- **Material 3** Theme (azure/blue palette, Roboto, density 0) in `styles.scss`.
-- **Lazy-loaded Routes** via `loadComponent: () => import(...)`.
-- Services gehen ueber `ApiClient` (Fehlerkanal: `ProblemDetail` → `ApiError`).
-- Dev-Proxy `/api`, `/q`, `/openapi` → `http://localhost:8080` (`proxy.conf.json`).
+Konventionen (erzwungen von `angular-signals-reviewer`):
 
-Build-Output: `src/main/webui/dist/webui/browser/` (Angular `@angular/build:application`). Quinoa packt das in das Quarkus-Artifact.
+- Standalone Components, `ChangeDetectionStrategy.OnPush`, `inject()`.
+- Signals (`signal`, `computed`) für lokalen State; Observables an Service-Grenzen.
+- Reactive Forms (`fb.nonNullable.group`) + Jakarta-Validation-aequivalente Regeln.
+- Material 3 Theme (azure-blue, Roboto).
+- Lazy-loaded Routes via `loadComponent: () => import(...)`.
+- `ApiClient` mappt `ProblemDetail` → `ApiError`; `fieldErrors[]` werden per `ctrl.setErrors({ server: … })` in Reactive Forms eingespielt.
+- Dev-Proxy `/api`, `/q`, `/openapi` → `http://localhost:8080` in `proxy.conf.json` (nur Konfiguration `standalone`).
+
+UX-Bausteine (Pflicht, Details: `.claude/skills/mda-init/references/angular-ux-patterns.md`):
+
+- BPF-Lifecycle als `MatStepper` (nicht-editierbar) im `*-detail`; BPF-Action-Buttons nur fuer aktuelle Stage.
+- Destruktive BPF-Trigger via `MatDialog` mit Pflicht-Begruendung (`minLength(10)`); harmlose Trigger mit schlankem Bestaetigungs-Dialog.
+- Listen via `MatTableDataSource` + `MatSort` + `MatPaginator` (pageSize 25) + `MatChipListbox` fuer Stage-Filter.
+- Formulare mit > 1 Stufe als linearer `MatStepper`; Skeleton-Loader statt Spinner beim Daten-Load.
+- Dark-Mode-Toggle im Shell (`body { color-scheme: light dark }`); alle Icon-Buttons mit `aria-label`.
+- `@angular/localize` von Tag 1 eingerichtet; Texte `i18n`-markiert oder mit `// i18n: unlocalized`-Ausnahme.
 
 ## Regeln (erzwungen per ArchUnit)
 
-- `domain/**` importiert **keine** Framework-Pakete (`jakarta.persistence`, `jakarta.ws.rs`, `io.quarkus`, `jakarta.inject/enterprise`).
-- `application/**` kennt **keine** Persistenz-Details (nur Out-Ports).
-- REST-Adapter ruft **nur** Eingangs-Ports (`port.in`), niemals direkt Anwendungsservice oder Out-Adapter.
-- Bounded-Context-uebergreifende Kopplung: **nur via IDs oder Events**, nie via Services/Adaptern.
+- `..domain..` importiert keine Framework-Pakete (`jakarta.*`, `io.quarkus.*`, `io.smallrye.*`, `org.hibernate.*`, `com.fasterxml.*`).
+- `..application.port..` importiert keine Framework-Pakete.
+- `..adapter.in..` darf nicht `..adapter.out..` importieren.
+- `jakarta.ws.rs.*` nur in `..adapter.in.rest..` und `shared/problem/`.
+- `jakarta.persistence.*` nur in `..adapter.out.persistence..` und `shared/process/`.
+- `contract/` darf `person/` **nicht** direkt importieren (Cross-BC-Kopplung nur per ID oder Event).
 
-Details: `.claude/skills/_shared/hexagonal-rules.md`.
+## BPF — Vertrag-Lifecycle
 
-## Harness-Konfiguration (`.claude/`)
+Transitions (siehe `contract/domain/process/VertragLifecycle.java`):
 
-- `.claude/settings.json` — Permissions (allow/deny), `env MDA_UI_MODE=rest`, Statusline, PreToolUse-Hooks.
-- `.claude/hooks/drift-guard.sh` — blockt `Edit`/`Write` bei Flyway-Re-Edit, sealed-permit-Entfernung, Loeschen des `manual-edits-below`-Markers, ArchUnit-Aufweichung, REST-Pfad-Rename ohne v2-Bump.
-- `.claude/hooks/bash-safeguard.sh` — blockt `--no-verify`, `git reset --hard`, `rm -rf src/`, Force-Push auf `main`, `-DskipTests`.
-- `.claude/agents/` — first-class Reviewer-Sub-Agents: `hexagonal-reviewer`, `angular-signals-reviewer`, `bdd-cucumber-author`, `bpf-reviewer`. Werden von `mda-implement` via `subagent_type` aufgerufen.
-- `.claude/statusline.sh` — zeigt Branch + Feature-Slug + Plan/Impl-Status.
-- MCP: `context7` ist Pflicht fuer Versions-Lookups (siehe `_shared/mda-stack.md` §9).
-
-## BPF (Business Process Flow)
-
-- BPF-Definitionen liegen je BC unter `<bc>/domain/` — konkrete Prozesse: **Fachspec**.
-- Laufzeit in `shared/process/BpfService`. Jede Transition schreibt Audit-Log-Eintrag.
-- Ungueltige Uebergaenge werfen `DomainException` mit Code `MDA-BPF-001`.
-- REST-Ausspielung: zuerst Aggregat-Seiteneffekt, dann BPF-Transition in derselben Transaktion.
-
-Details: `.claude/skills/_shared/bpf-guide.md`.
-
-## Die fuenf Skills
-
-Die gesamte MDA-Toolchain liegt im Repo unter `.claude/skills/` — keine globale Abhaengigkeit. Genau **fuenf** Skills, ein Workflow:
-
-| Skill | Zweck | Phase |
+| Von | Trigger | Nach |
 |---|---|---|
-| `/mda-init` | Erstentwurf des Projekts aus **Beschreibung** (Freitext/Markdown) ODER **PlantUML/BPMN/Rules-DSL** | einmalig |
-| `/mda-plan <beschreibung>` | Feature planen: `specs/features/<slug>.md` + `plan/<slug>.md`, wartet auf Bestaetigung | pro Feature |
-| `/mda-implement <slug> [--worktree]` | Plan umsetzen: Branch, Delta, Tests, Reviewer-Agents, Commit, PR | pro Feature |
-| `/mda-ship` | CI abwarten, PR squash-mergen, Issue schliessen, Cleanup | pro Feature |
-| `/mda-fast <beschreibung>` | `mda-plan` → (Bestaetigung wenn noetig) → `mda-implement` → `mda-ship` | bei klaren Features |
+| ENTWURF | `einreichen` | IN_PRUEFUNG |
+| IN_PRUEFUNG | `freigeben` | FREIGEGEBEN |
+| IN_PRUEFUNG | `korrekturbeantragen` | KORREKTURBEDARF |
+| KORREKTURBEDARF | `einreichen` | IN_PRUEFUNG |
+| FREIGEGEBEN | `zurSignaturSenden` | ZUR_SIGNATUR |
+| ZUR_SIGNATUR | `unterzeichnen` | UNTERZEICHNET |
+| UNTERZEICHNET | `archivieren` | ARCHIVIERT |
+| ARCHIVIERT | `ablaufen` | ABGELAUFEN |
+| ARCHIVIERT | `kuendigen` | GEKUENDIGT |
 
-**Shared-Regeln** (normativ, gelten fuer alle Skills):
+Fehlermodell: ungueltige Transition → `DomainException("MDA-BPF-001")` → HTTP 422 Problem+JSON.
 
-- `.claude/skills/_shared/mda-spec.md` — MDA-Spezifikation (Prinzipien, Artefakte, API-Konvention).
-- `.claude/skills/_shared/mda-stack.md` — Quarkus-Stack (Versionen, Extensions).
-- `.claude/skills/_shared/hexagonal-rules.md` — Paket-Layout.
-- `.claude/skills/_shared/bpf-guide.md` — BPF-Engine.
-- `.claude/skills/_shared/testing-pyramid.md` — Testverhaeltnis + Tags.
-- `.claude/skills/_shared/drift-guards.md` — Was nie angefasst werden darf.
-- `.claude/skills/_shared/feature-spec-template.md` — Feature-Spec-Template.
-- `.claude/skills/_shared/dod-checklist.md` — Definition of Done.
+REST: `POST /api/v1/vertraege/{id}/process/contract/trigger/{trigger}?actor=…` → 200 `{"stage":"…"}`.
 
-## Feature-First-Workflow (verpflichtend)
+## Harness (`.claude/`)
 
-Jede fachliche Erweiterung (neues Aggregate, neuer Use-Case, neue BPF-Transition, neuer Screen, neues Feld) laeuft **immer** ueber den `mda-plan` → `mda-implement` → `mda-ship`-Workflow, niemals direkt ueber Hand-Edit.
-
-**Direkter Edit in `src/main/java/…/domain/` oder `…/application/` ist nicht erlaubt** — ausser:
-
-- unterhalb eines `// mda-generator: manual-edits-below`-Markers (wird beim Regenerieren nicht ueberschrieben); oder
-- in `config/`, `shared/` (dort sind Rahmen-Entscheide erlaubt).
-
-**Gleiches fuer das Frontend**: neue Seiten per `ng generate component pages/<name>`, neue Services per `ng generate service core/<name>` — nicht manuell anlegen.
-
-**Drift-Guards** (siehe `.claude/skills/_shared/drift-guards.md`): bestehende Flyway-Migrationen, Aggregate-Public-API-Umbenennungen, sealed-permit-Entfernungen, Aufweichung von ArchUnit-Regeln, Umbenennung von REST-Pfaden ohne Versions-Bump.
-
-**Bei Unsicherheit**: zuerst Fachspec lesen, dann fragen — nicht einfach loscoden.
+- `.claude/settings.json` — Permissions, Statusline, Hooks.
+- `.claude/hooks/drift-guard.sh` — blockt Edit auf bestehende Flyway-Migrationen, Löschen des `manual-edits-below`-Markers, ArchUnit-Aufweichung, sealed-permit-Verkleinerung, REST-Pfad-Rename ohne `/v2/`-Bump.
+- `.claude/hooks/bash-safeguard.sh` — blockt `-DskipTests`, `--no-verify`, `git reset --hard`, `rm -rf src/`, Force-Push auf `main`.
+- `.claude/agents/` — `hexagonal-reviewer`, `angular-signals-reviewer`, `bdd-cucumber-author`, `bpf-reviewer`.
+- MCP: `context7` Pflicht für Versions-Lookups.
 
 ## Tests
 
-- Surefire: Unit-Tests (`*Test.java`) inkl. `@QuarkusTest`.
-- Failsafe: `ServiceBddIT`, `ProcessBddIT`, `UiBddIT` (Cucumber).
-- ArchitectureTest prueft Schichten- und BC-Grenzen.
-- Pyramiden-Heuristik: `./scripts/count-tests.sh`.
-
-Tag-Konvention + Verhaeltnis: `.claude/skills/_shared/testing-pyramid.md`.
+- Surefire (`*Test.java`): Unit (JUnit 5) + `@QuarkusTest`-Integration.
+- Failsafe (`*IT.java`):
+  - `ServiceBddIT` (Tag `@service`)
+  - `ProcessBddIT` (Tag `@process`)
+  - `UiBddIT` (Tag `@ui`)
+  - `*ApplicationServiceIT` (reine `@QuarkusTest`-Integration, ohne Cucumber)
+- Cucumber via `io.quarkiverse.cucumber:quarkus-cucumber` — Runner erben von `CucumberQuarkusTest`, Step-Klassen sind `@ScenarioScope`.
+- Pyramiden-Verhaeltnis: `./scripts/count-tests.sh` muss grün sein (`unit ≥ 2×int`, `int ≥ 2×bdd_non_ui`, `bdd_non_ui ≥ bdd_ui`).
 
 ## Persistenz
 
-Flyway-Migrationen sind **additiv**: `V<n>__<slug>.sql`. Bestehende V-Dateien sind unveraenderlich. Konkrete Tabellen und Migrationsstand: **Fachspec**.
+- Flyway-Migrationen unter `src/main/resources/db/migration/`:
+  - `V1__init.sql` — `vertrag`, `vertrag_partei`, `vertrag_version`, `person`.
+  - `V2__bpf.sql` — `bpf_instance`, `bpf_transition_log`.
+- Dev: H2 in-memory (`%dev` Profile). Test: H2 in-memory. Prod: PostgreSQL 16+.
+- Migrationen sind **additiv**: bestehende `V<n>__*.sql` nie editieren. Neue Deltas als `V<n+1>__*.sql`.
 
-## Weitere Dokumente (werden von `/mda-init` erzeugt, solange der Starter leer ist)
+## Feature-First-Workflow
 
-- `specs/model/00-spec-<slug>.md` — **Fachliche Spezifikation (Pflicht)**, einzige fachliche Quelle.
-- `specs/model/*.puml` — PlantUML-Modelle (Input fuer `mda-init` oder Output nach Initialisierung).
-- `specs/features/*.md` — Feature-Specs, je eine pro Feature (fuer `mda-plan`/`mda-implement`).
-- `plan/*.md` — Impact-Plaene (fuer `mda-implement`).
-- `docs/architecture/arc42.md` — C4-Modell + Laufzeitsicht je Prozess.
-- `docs/architecture/adr/*.md` — Architekturentscheide.
+Neue fachliche Erweiterungen immer über `/mda-plan` → `/mda-implement` → `/mda-ship`. Direkter Edit in `domain/`, `application/` nur unterhalb `// mda-generator: manual-edits-below` oder innerhalb `shared/`, `config/`.
+
+Neue Pages via `ng generate component pages/<name>`, neue Services via `ng generate service core/<name>`.
+
+## Weitere Dokumente
+
+- `specs/model/00-spec-clm.md` — fachliche Spezifikation (einzige fachliche Quelle).
+- `docs/architecture/arc42.md` — Architekturdokumentation (C4-L1/L2/L3, Laufzeitsicht).
+- `docs/architecture/adr/*.md` — Architekturentscheide (0001..0009).
+- `docs/architecture/testing.md` — Testpyramide und Tags.
 <!-- mda-generator:end -->

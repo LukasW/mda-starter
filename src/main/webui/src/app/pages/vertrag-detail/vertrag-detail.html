@@ -1,0 +1,29 @@
+<a mat-icon-button routerLink="/vertraege" aria-label="Zurück">
+  <mat-icon>arrow_back</mat-icon>
+</a>
+
+@if (loading()) {
+  <mat-spinner diameter="32"></mat-spinner>
+} @else if (error() || !vertrag()) {
+  <p class="error">{{ error() }}</p>
+} @else {
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>{{ vertrag()!.titel }}</mat-card-title>
+      <mat-card-subtitle>{{ vertrag()!.typ }}</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <p>Stage: <mat-chip>{{ vertrag()!.stage }}</mat-chip></p>
+      <p>ID: {{ vertrag()!.id }}</p>
+      <p>Versionen: {{ vertrag()!.versionen.length }}</p>
+      <p>Parteien: {{ vertrag()!.parteien.length }}</p>
+    </mat-card-content>
+    <mat-card-actions>
+      @for (a of actions(); track a.trigger) {
+        <button mat-flat-button color="primary" (click)="trigger(a.trigger)">
+          {{ a.label }}
+        </button>
+      }
+    </mat-card-actions>
+  </mat-card>
+}

@@ -1,0 +1,34 @@
+<h2>Neuen Vertrag erfassen</h2>
+
+<form [formGroup]="form" (ngSubmit)="submit()" class="form">
+  <mat-form-field appearance="outline">
+    <mat-label>Titel</mat-label>
+    <input matInput formControlName="titel" required maxlength="200" />
+    @if (form.controls.titel.invalid && form.controls.titel.touched) {
+      <mat-error>Titel ist Pflicht (max. 200 Zeichen).</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Typ</mat-label>
+    <mat-select formControlName="typ" required>
+      @for (t of typen; track t) {
+        <mat-option [value]="t">{{ t }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline">
+    <mat-label>Ersteller-UUID</mat-label>
+    <input matInput formControlName="erstellerId" required />
+    @if (form.controls.erstellerId.invalid && form.controls.erstellerId.touched) {
+      <mat-error>Ersteller-UUID ist Pflicht.</mat-error>
+    }
+  </mat-form-field>
+
+  <div class="actions">
+    <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || submitting()">
+      Anlegen
+    </button>
+  </div>
+</form>

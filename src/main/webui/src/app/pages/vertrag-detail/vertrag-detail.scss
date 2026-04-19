@@ -1,0 +1,14 @@
+mat-card {
+  max-width: 640px;
+  margin-top: 16px;
+}
+
+mat-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.error {
+  color: #b3261e;
+}

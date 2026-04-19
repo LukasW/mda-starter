@@ -1,0 +1,38 @@
+<h2>Personen</h2>
+
+<form [formGroup]="searchForm" (ngSubmit)="search()" class="search">
+  <mat-form-field appearance="outline">
+    <mat-label>Suchbegriff (Name, Mail, Organisation)</mat-label>
+    <input matInput formControlName="query" />
+  </mat-form-field>
+  <button mat-flat-button color="primary" type="submit">Suchen</button>
+</form>
+
+@if (loading()) {
+  <mat-spinner diameter="32"></mat-spinner>
+} @else if (error()) {
+  <p class="error">{{ error() }}</p>
+} @else if (results().length === 0) {
+  <p>Keine Treffer.</p>
+} @else {
+  <table mat-table [dataSource]="results()" class="mat-elevation-z1">
+    <ng-container matColumnDef="name">
+      <th mat-header-cell *matHeaderCellDef>Name</th>
+      <td mat-cell *matCellDef="let p">{{ p.vorname }} {{ p.nachname }}</td>
+    </ng-container>
+    <ng-container matColumnDef="email">
+      <th mat-header-cell *matHeaderCellDef>E-Mail</th>
+      <td mat-cell *matCellDef="let p">{{ p.email }}</td>
+    </ng-container>
+    <ng-container matColumnDef="organisation">
+      <th mat-header-cell *matHeaderCellDef>Organisation</th>
+      <td mat-cell *matCellDef="let p">{{ p.organisation }}</td>
+    </ng-container>
+    <ng-container matColumnDef="quelle">
+      <th mat-header-cell *matHeaderCellDef>Quelle</th>
+      <td mat-cell *matCellDef="let p"><mat-chip>{{ p.quelleTyp }}</mat-chip></td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+}

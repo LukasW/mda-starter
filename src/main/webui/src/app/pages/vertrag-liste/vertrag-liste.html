@@ -1,0 +1,51 @@
+<div class="header">
+  <h2>Verträge</h2>
+  <div class="actions">
+    <button mat-icon-button (click)="reload()" aria-label="Neu laden">
+      <mat-icon>refresh</mat-icon>
+    </button>
+    <a mat-flat-button color="primary" routerLink="/vertraege/neu">
+      <mat-icon>add</mat-icon>
+      Neuer Vertrag
+    </a>
+  </div>
+</div>
+
+@if (loading()) {
+  <mat-spinner diameter="32"></mat-spinner>
+} @else if (error()) {
+  <p class="error">{{ error() }}</p>
+} @else if (items().length === 0) {
+  <p>Keine Verträge vorhanden.</p>
+} @else {
+  <table mat-table [dataSource]="items()" class="mat-elevation-z1">
+    <ng-container matColumnDef="titel">
+      <th mat-header-cell *matHeaderCellDef>Titel</th>
+      <td mat-cell *matCellDef="let v">{{ v.titel }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="typ">
+      <th mat-header-cell *matHeaderCellDef>Typ</th>
+      <td mat-cell *matCellDef="let v">{{ v.typ }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="stage">
+      <th mat-header-cell *matHeaderCellDef>Stage</th>
+      <td mat-cell *matCellDef="let v">
+        <mat-chip>{{ v.stage }}</mat-chip>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="aktionen">
+      <th mat-header-cell *matHeaderCellDef></th>
+      <td mat-cell *matCellDef="let v">
+        <a mat-icon-button [routerLink]="['/vertraege', v.id]" aria-label="Details">
+          <mat-icon>open_in_new</mat-icon>
+        </a>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+}
