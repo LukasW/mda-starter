@@ -1,0 +1,32 @@
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.page-header h2 { margin: 0; font-size: 1.3rem; font-weight: 500; }
+.spacer { flex: 1 1 auto; }
+
+.state-block {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.error-card mat-card-content {
+  display: flex; align-items: center; gap: 0.75rem; color: #b91c1c;
+}
+
+.muted { color: rgba(0, 0, 0, 0.55); }
+
+table.mat-mdc-table { width: 100%; }
+
+:host ::ng-deep mat-chip.mat-mdc-chip {
+  font-size: 0.75rem; height: 22px; min-height: 22px;
+  &.status-offen     { background: #dbeafe; color: #1e40af; }
+  &.status-erinnert  { background: #fef3c7; color: #92400e; }
+  &.status-erledigt  { background: #d1fae5; color: #065f46; }
+  &.status-eskaliert { background: #fee2e2; color: #991b1b; }
+}

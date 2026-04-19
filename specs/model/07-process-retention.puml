@@ -1,0 +1,27 @@
+@startuml
+skinparam defaultFontName "Inter"
+skinparam activityBackgroundColor #F5F7FA
+skinparam activityBorderColor #2B4C7E
+
+|System|
+start
+:Vertrag erreicht Status
+'Beendet' oder 'Abgelaufen';
+:Retention-Startdatum setzen (heute);
+:Retention-Enddatum berechnen
+(gemaess Vertragsart und Mandant,
+Standard: Startdatum + 10 Jahre);
+:Status auf 'Archiviert' setzen;
+repeat
+  :Taeglicher Check;
+  if (Retention-Ende erreicht?) then (ja)
+    :Dokumente aus Blob-Storage loeschen;
+    :Personenbezogene Metadaten pseudonymisieren;
+    :Audit-Event 'VertragEndgueltigGeloescht';
+    stop
+  else (nein)
+    :Weiter archiviert halten;
+  endif
+repeat while (Retention laeuft?)
+stop
+@enduml

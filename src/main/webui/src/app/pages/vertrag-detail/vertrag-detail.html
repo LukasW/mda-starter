@@ -1,0 +1,68 @@
+<div class="page-header">
+  <a mat-icon-button routerLink="/vertraege" aria-label="Zurueck">
+    <mat-icon>arrow_back</mat-icon>
+  </a>
+  <h2>Vertragsdetails</h2>
+</div>
+
+@if (error()) {
+  <mat-card appearance="outlined" class="error-card">
+    <mat-card-content>
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ error() }}</span>
+    </mat-card-content>
+  </mat-card>
+}
+
+@if (vertrag(); as v) {
+  <mat-card appearance="outlined" class="detail-card">
+    <mat-card-header>
+      <mat-card-title>{{ v.titel }}</mat-card-title>
+      <mat-card-subtitle>
+        <mat-chip [class]="statusClass(v.status)">{{ v.status }}</mat-chip>
+        <span class="vertragsart">{{ v.vertragsart }}</span>
+      </mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <dl class="metadata">
+        <dt>Vertrags-ID</dt><dd><code>{{ v.vertragId }}</code></dd>
+        <dt>Mandant</dt><dd><code>{{ v.mandantId }}</code></dd>
+        <dt>Partner</dt><dd><code>{{ v.partnerId }}</code></dd>
+        <dt>Startdatum</dt><dd>{{ (v.startDatum | date:'yyyy-MM-dd') ?? '—' }}</dd>
+        <dt>Enddatum</dt><dd>{{ (v.endDatum | date:'yyyy-MM-dd') ?? '—' }}</dd>
+        <dt>Kuendigungsfrist</dt><dd>{{ v.kuendigungsfristTage ?? '—' }} Tage</dd>
+      </dl>
+
+      <mat-divider />
+
+      <h3>Versionen ({{ v.versionen.length }})</h3>
+      @if (v.versionen.length === 0) {
+        <p class="muted">Noch keine Dokumentversion hochgeladen.</p>
+      } @else {
+        <ul class="version-list">
+          @for (version of v.versionen; track version.versionId) {
+            <li>
+              <strong>v{{ version.versionNummer }}</strong> · {{ version.dateiname }}
+              <span class="muted">({{ version.groesseBytes }} Bytes, {{ version.mimeType }})</span>
+            </li>
+          }
+        </ul>
+      }
+    </mat-card-content>
+    <mat-card-actions align="end">
+      @if (canEinreichen()) {
+        <button mat-flat-button color="primary" (click)="einreichen()">
+          <mat-icon>send</mat-icon> Zur Pruefung einreichen
+        </button>
+      }
+      @if (canEntscheiden()) {
+        <button mat-flat-button color="primary" (click)="genehmigen()">
+          <mat-icon>check</mat-icon> Genehmigen
+        </button>
+        <button mat-stroked-button color="warn" (click)="ablehnen()">
+          <mat-icon>close</mat-icon> Ablehnen
+        </button>
+      }
+    </mat-card-actions>
+  </mat-card>
+}

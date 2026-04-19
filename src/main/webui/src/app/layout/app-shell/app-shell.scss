@@ -1,0 +1,53 @@
+:host {
+  display: block;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  height: 64px;
+}
+
+.app-title {
+  font-size: 1.05rem;
+  font-weight: 500;
+  margin-left: 1rem;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.env-label {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  letter-spacing: 0.05em;
+}
+
+.app-container {
+  position: absolute;
+  top: 64px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.app-sidenav {
+  width: 240px;
+  border-right: 1px solid var(--mat-sys-outline-variant, rgba(0, 0, 0, 0.1));
+}
+
+.app-sidenav a.active-link {
+  background: var(--mat-sys-secondary-container, rgba(25, 118, 210, 0.1));
+  color: var(--mat-sys-on-secondary-container, inherit);
+}
+
+.app-content {
+  padding: 1.5rem 2rem;
+  overflow: auto;
+}

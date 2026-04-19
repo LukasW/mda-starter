@@ -1,0 +1,38 @@
+@startuml
+skinparam defaultFontName "Inter"
+skinparam activityBackgroundColor #F5F7FA
+skinparam activityBorderColor #2B4C7E
+
+|System (Scheduler)|
+start
+:Taeglicher Job (02:00 CET);
+:Alle aktiven Vertraege laden;
+repeat
+  :Naechste relevante Frist bestimmen
+  (Kuendigung, Verlaengerung, Ablauf);
+  :Erinnerungsdatum berechnen
+  (Frist minus Vorlaufzeit);
+  if (Erinnerungsdatum erreicht?) then (ja)
+    :Erinnerung erzeugen;
+    :E-Mail an Vertragsverantwortlichen;
+    :Dashboard-Eintrag aktivieren;
+    :Event 'FristErinnerungAusgeloest' publizieren;
+    |Vertragsverantwortlicher|
+    :Erinnerung im Dashboard sichten;
+    if (Entscheidung?) then (Kuendigen)
+      :Kuendigungsabsicht dokumentieren;
+      :Status auf 'InKuendigung' setzen;
+    elseif (Verlaengern) then
+      :Neue Laufzeit erfassen;
+      :Neuer Review-Zyklus;
+    else (Keine Aktion)
+      :Erinnerung als 'gesichtet' markieren;
+    endif
+  else (nein)
+    :Naechster Vertrag;
+  endif
+|System (Scheduler)|
+repeat while (Weitere Vertraege?) is (ja)
+->nein;
+stop
+@enduml
