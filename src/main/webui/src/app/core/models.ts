@@ -53,6 +53,7 @@ export interface PersonDto {
   funktion: string | null;
   quelleTyp: 'INTERN' | 'EXTERN_API';
   externeId: string | null;
+  versionNumber: number;
 }
 
 export interface ApiError {

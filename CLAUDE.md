@@ -10,7 +10,7 @@ Contract-Lifecycle-Management (CLM) auf Quarkus 3.34.5 + Angular 21 + Material (
 Bounded Contexts:
 
 - **`contract`** — Vertraege, Versionen, Vertragsparteien, BPF-Lifecycle (9 Stages: `ENTWURF` → … → `ARCHIVIERT` → `ABGELAUFEN|GEKUENDIGT`).
-- **`person`** — Interne Personenverwaltung + optionaler Snapshot-Cache aus einer externen Personenverwaltung (Feature-gegated per `clm.person.externe-verwaltung.enabled`).
+- **`person`** — Interne Personenverwaltung mit vollem CRUD (Erfassen / Aendern / Soft-Delete via `deleted_at`) + optionaler Snapshot-Cache aus einer externen Personenverwaltung (Feature-gegated per `clm.person.externe-verwaltung.enabled`). EXTERN_API-Personen sind read-only (Aendern → `MDA-PER-002`, Loeschen → `MDA-PER-003`).
 
 Optionale externe Integrationen (Ports definiert, Adapter-Stubs) — Anbieter-Wahl steht gem. AE-02/AE-03 aus:
 
@@ -155,6 +155,7 @@ REST: `POST /api/v1/vertraege/{id}/process/contract/trigger/{trigger}?actor=…`
 - Flyway-Migrationen unter `src/main/resources/db/migration/`:
   - `V1__init.sql` — `vertrag`, `vertrag_partei`, `vertrag_version`, `person`.
   - `V2__bpf.sql` — `bpf_instance`, `bpf_transition_log`.
+  - `V3__person_soft_delete.sql` — `person.deleted_at` + Index.
 - Dev: H2 in-memory (`%dev` Profile). Test: H2 in-memory. Prod: PostgreSQL 16+.
 - Migrationen sind **additiv**: bestehende `V<n>__*.sql` nie editieren. Neue Deltas als `V<n+1>__*.sql`.
 

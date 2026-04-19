@@ -13,4 +13,7 @@ public interface PersonRepository {
     Optional<Person> findById(PersonId id);
 
     List<Person> search(String query, int limit);
+
+    /** Soft-Delete: setzt {@code deleted_at} via {@link Person#loeschen(long)}. */
+    void softDelete(Person person);
 }

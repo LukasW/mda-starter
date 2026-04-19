@@ -1,0 +1,36 @@
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.extern-chip {
+  margin-left: auto;
+}
+
+mat-card {
+  padding: 1.5rem;
+  max-width: 720px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.error {
+  color: var(--mat-sys-error, #b3261e);
+  margin: 0.5rem 0;
+}

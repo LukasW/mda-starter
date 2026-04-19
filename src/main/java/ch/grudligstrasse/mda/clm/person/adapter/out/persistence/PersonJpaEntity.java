@@ -47,6 +47,9 @@ public class PersonJpaEntity {
     @Column(name = "modified_at", nullable = false)
     public Instant modifiedAt;
 
+    @Column(name = "deleted_at")
+    public Instant deletedAt;
+
     @Version
     @Column(name = "version_number", nullable = false)
     public long versionNumber;
