@@ -1,13 +1,21 @@
 <!-- mda-generator:begin -->
-# CLAUDE.md — mda-starter (CLM MVP V1)
+# CLAUDE.md — Quarkus MDA Starter
 
-Dieses Dokument orientiert Claude Code im Projekt. Es ersetzt kein ausfuehrliches Architektur-Dokument (siehe `docs/architecture/arc42.md`).
+Dieses Dokument orientiert Claude Code im Projekt. Es beschreibt **nur** Architektur, Harness und Workflow — fachliche Inhalte stehen in der Fachspec.
+
+## Fachliche Spezifikation (PFLICHT)
+
+**Vor jedem fachlichen Task lesen:** [`specs/model/00-spec-clm-mvp-v1.md`](specs/model/00-spec-clm-mvp-v1.md)
+
+Diese Datei ist die einzige fachliche Quelle: Bounded Contexts, Rollen, REST-Pfade, BPF-Prozesse, Flyway-Tabellen, Frontend-Seiten, Event-Topics, Out-of-Scope. **Alle Abweichungen zwischen Code und Spec sind Bugs** — entweder Code anpassen oder Spec explizit aendern (mit ADR in `docs/architecture/adr/`).
+
+Abgeleitete Modelle: `specs/model/*.puml` (PlantUML).
 
 ## Was ist das?
 
-Referenz-Starter fuer **Contract Lifecycle Management (CLM) MVP V1** auf Quarkus 3.34.5 gemaess MDA-Ansatz. Drei Bounded Contexts: `contract`, `approval`, `obligation`. Hexagonale Architektur (Port & Adapter), DDD, Business Process Flow (BPF) als Panache-Zustandsautomat. Angular 21 + Material SPA unter `src/main/webui`, via Quarkus Quinoa 2.8.1 in den Backend-Build integriert.
+Quarkus 3.34.5 MDA-Referenz-Starter. Hexagonale Architektur (Port & Adapter), DDD, Business Process Flow (BPF) als Panache-Zustandsautomat. Angular 21 + Material SPA unter `src/main/webui`, via Quarkus Quinoa 2.8.1 in den Backend-Build integriert.
 
-Die **verbindlichen MDA-Regeln** liegen vollstaendig unter `.claude/skills/_shared/` — das Projekt braucht keine externen `specs/MDA-*.md`-Dateien mehr.
+Die **verbindlichen MDA-Regeln** liegen vollstaendig unter `.claude/skills/_shared/`.
 
 ## Schnellstart
 
@@ -21,17 +29,18 @@ Dev-Endpunkte:
 - `http://localhost:8080/` — Angular SPA (Quinoa proxy auf ng dev-server :4200)
 - `http://localhost:8080/q/health/ready`
 - `http://localhost:8080/openapi` / `http://localhost:8080/q/swagger-ui`
-- REST: `/api/v1/vertraege`, `/api/v1/freigaben`, `/api/v1/fristen`
+
+REST-Pfade: siehe Fachspec.
 
 ## Paket-Layout (je BC identisch)
 
 ```
-ch.grudligstrasse.mda.starter
+<root-package>
   shared/
     events/      DomainEvent + InMemoryDomainEventPublisher
     problem/     DomainException + ProblemDetail + ExceptionMapper
     process/     BpfDefinition + BpfService + BpfInstance/TransitionLog-Entities
-  contract/  approval/  obligation/
+  <bc>/                         # BC-Namen: siehe Fachspec
     domain/              Aggregates, VOs, Enums, sealed Domain-Events, BPF-Definition
     application/
       port/in/           UseCase-Interfaces (Command/Query-Records)
@@ -39,9 +48,11 @@ ch.grudligstrasse.mda.starter
       service/           @ApplicationScoped Anwendungsservice (Transaktionsgrenze)
     adapter/
       in/rest/           JAX-RS-Resources + DTOs + Request-Records (Validation)
-      in/scheduler/      (nur obligation) Quarkus-@Scheduled-Jobs
+      in/scheduler/      Quarkus-@Scheduled-Jobs (wo fachlich benoetigt)
       out/persistence/   Panache-Entities + Repositories + Adapter (Port-Out-Impl)
 ```
+
+Konkrete BC- und Root-Package-Namen: **Fachspec**.
 
 ## Frontend (Angular 21 + Material)
 
@@ -52,10 +63,9 @@ src/main/webui/
     main.ts, index.html, styles.scss
     app/
       app.ts, app.config.ts, app.routes.ts
-      core/                 Services: api-client, vertrag, frist, freigabe, models.ts
+      core/                 Services (siehe Fachspec)
       layout/app-shell/     MatToolbar + MatSidenav Shell
-      pages/                Standalone-Components: vertrag-liste, vertrag-erfassen,
-                            vertrag-detail, frist-liste
+      pages/                Standalone-Components (siehe Fachspec)
 ```
 
 Konventionen:
@@ -87,12 +97,12 @@ Details: `.claude/skills/_shared/hexagonal-rules.md`.
 - `.claude/statusline.sh` — zeigt Branch + Feature-Slug + Plan/Impl-Status.
 - MCP: `context7` ist Pflicht fuer Versions-Lookups (siehe `_shared/mda-stack.md` §9).
 
-## BPF — Vertragslifecycle + Fristenerinnerung
+## BPF (Business Process Flow)
 
-- Definitionen in `…domain/VertragLifecycle.java` bzw. `…domain/FristenErinnerungProcess.java`.
+- BPF-Definitionen liegen je BC unter `<bc>/domain/` — konkrete Prozesse: **Fachspec**.
 - Laufzeit in `shared/process/BpfService`. Jede Transition schreibt Audit-Log-Eintrag.
 - Ungueltige Uebergaenge werfen `DomainException` mit Code `MDA-BPF-001`.
-- REST-Ausspielung: zuerst Aggregat-Seiteneffekt (einreichen/genehmigen/…), dann BPF-Transition in derselben Transaktion.
+- REST-Ausspielung: zuerst Aggregat-Seiteneffekt, dann BPF-Transition in derselben Transaktion.
 
 Details: `.claude/skills/_shared/bpf-guide.md`.
 
@@ -132,14 +142,7 @@ Jede fachliche Erweiterung (neues Aggregate, neuer Use-Case, neue BPF-Transition
 
 **Drift-Guards** (siehe `.claude/skills/_shared/drift-guards.md`): bestehende Flyway-Migrationen, Aggregate-Public-API-Umbenennungen, sealed-permit-Entfernungen, Aufweichung von ArchUnit-Regeln, Umbenennung von REST-Pfaden ohne Versions-Bump.
 
-**Bei Unsicherheit**: zuerst fragen, nicht einfach loscoden.
-
-## Out of MVP Scope (bewusst weggelassen)
-
-- Camunda 7 Workflow-Engine (keine BPMN-Inputs → Zero-Config-Prinzip).
-- Business-Rules-DSL mit AST-Interpreter (keine `.rules.yaml`-Inputs).
-- Playwright UI-BDD (Default-Modus ist `rest` ueber Domain-Aufrufe).
-- Kafka-Producer; Events werden in-process ueber `InMemoryDomainEventPublisher` geloggt.
+**Bei Unsicherheit**: zuerst Fachspec lesen, dann fragen — nicht einfach loscoden.
 
 ## Tests
 
@@ -150,20 +153,16 @@ Jede fachliche Erweiterung (neues Aggregate, neuer Use-Case, neue BPF-Transition
 
 Tag-Konvention + Verhaeltnis: `.claude/skills/_shared/testing-pyramid.md`.
 
-## Datenmodell
+## Persistenz
 
-Flyway-Migrationen:
-
-- `V1__init.sql` — `vertrag`, `dokument_version`, `freigabe`, `frist`.
-- `V2__bpf.sql` — `bpf_instance`, `bpf_transition_log`.
-
-Neue Migrationen sind **additiv**: `V<n>__<slug>.sql`. Bestehende V-Dateien sind unveraenderlich.
+Flyway-Migrationen sind **additiv**: `V<n>__<slug>.sql`. Bestehende V-Dateien sind unveraenderlich. Konkrete Tabellen und Migrationsstand: **Fachspec**.
 
 ## Weitere Dokumente
 
-- `docs/architecture/arc42.md` — C4-Modell + Laufzeitsicht je Prozess.
-- `docs/architecture/adr/*.md` — Architekturentscheide.
-- `specs/model/*.puml` — optionale PlantUML-Modelle (fuer `mda-init`).
+- `specs/model/00-spec-clm-mvp-v1.md` — **Fachliche Spezifikation (Pflicht)**.
+- `specs/model/*.puml` — PlantUML-Modelle (fuer `mda-init`).
 - `specs/features/*.md` — Feature-Specs, je eine pro Feature (fuer `mda-plan`/`mda-implement`).
 - `plan/*.md` — Impact-Plaene (fuer `mda-implement`).
+- `docs/architecture/arc42.md` — C4-Modell + Laufzeitsicht je Prozess.
+- `docs/architecture/adr/*.md` — Architekturentscheide.
 <!-- mda-generator:end -->

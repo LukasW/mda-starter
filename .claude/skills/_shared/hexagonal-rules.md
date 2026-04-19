@@ -4,7 +4,7 @@
 
 ```
 <root-pkg>
-├── <bc>                               # z. B. "contract"
+├── <bc>                               # z. B. "order"
 │   ├── domain/
 │   │   ├── Aggregate.java             # Aggregate Root
 │   │   ├── AggregateId.java           # record XxxId

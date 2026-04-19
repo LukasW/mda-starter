@@ -4,44 +4,46 @@ Die Datei `specs/features/<slug>.md` ist der **einzige** Eingabe-Schnitt fuer `m
 
 ## Minimalbeispiel
 
+> **Hinweis:** Das Beispiel verwendet eine neutrale Demo-Domaene (`Auftrag`/`order`). Die projekteigene Fachsprache steht in `specs/model/*.md` (siehe CLAUDE.md).
+
 ```markdown
 ---
-slug: vertrag-kommentar
-title: Kommentar beim Einreichen
-bounded_context: contract
+slug: auftrag-notiz
+title: Notiz beim Bestaetigen
+bounded_context: order
 kind: add-field
-affects_aggregate: Vertrag
+affects_aggregate: Auftrag
 created: 2026-04-19
-author: lukas
+author: beispiel
 ---
 
 ## Warum
-Reviewer moechten den Kontext des Antragstellers beim Einreichen kennen.
+Bearbeiter moechten beim Bestaetigen eine optionale Notiz hinterlegen.
 
 ## Fachliche Regel
-Beim Einreichen darf — optional — ein Kommentar (max. 2000 Zeichen) mitgegeben werden. Der Kommentar ist Teil des Vertrags-Aggregats.
+Beim Bestaetigen darf — optional — eine Notiz (max. 2000 Zeichen) mitgegeben werden. Die Notiz ist Teil des Auftrags-Aggregats.
 
 ## Use-Cases
-### Erweiterung `VertragEinreichenUseCase`
-- Command: `Command(vertragId, antragstellerId, kommentar?)`
-- REST: Feld optional im bestehenden `POST /api/v1/vertraege/{id}/einreichen`.
+### Erweiterung `AuftragBestaetigenUseCase`
+- Command: `Command(auftragId, bearbeiterId, notiz?)`
+- REST: Feld optional im bestehenden `POST /api/v1/auftraege/{id}/bestaetigen`.
 
 ## Daten
-- Neues Feld `Vertrag.einreichungsKommentar: String?` (nullable, max 2000).
-- Flyway `V3__vertrag_einreichungskommentar.sql`:
-  `ALTER TABLE vertrag ADD COLUMN einreichungs_kommentar VARCHAR(2000) NULL;`
+- Neues Feld `Auftrag.bestaetigungsNotiz: String?` (nullable, max 2000).
+- Flyway `V3__auftrag_bestaetigungsnotiz.sql`:
+  `ALTER TABLE auftrag ADD COLUMN bestaetigungs_notiz VARCHAR(2000) NULL;`
 
 ## UI
-- `vertrag-detail` bekommt Textarea fuer Kommentar, read-only ab Status `IN_PRUEFUNG`.
+- `auftrag-detail` bekommt Textarea fuer Notiz, read-only ab Status `VERSANDT`.
 
 ## Tests
-- Unit: `vertrag_speichert_einreichungskommentar`.
-- Integration: `VertragResourceTest` — POST einreichen mit Kommentar.
-- BDD `@service`: "Antragsteller reicht mit Kommentar ein".
+- Unit: `auftrag_speichert_bestaetigungsnotiz`.
+- Integration: `AuftragResourceTest` — POST bestaetigen mit Notiz.
+- BDD `@service`: "Bearbeiter bestaetigt mit Notiz".
 
 ## Rollback
-- Rollback-Migration `V<n>__undo_einreichungskommentar.sql`: `DROP COLUMN`.
-- Feld aus `Vertrag.java` + JPA-Entity entfernen. DTO/UI zurueck.
+- Rollback-Migration `V<n>__undo_bestaetigungsnotiz.sql`: `DROP COLUMN`.
+- Feld aus `Auftrag.java` + JPA-Entity entfernen. DTO/UI zurueck.
 ```
 
 ## Pflichtfelder (YAML-Front-Matter)

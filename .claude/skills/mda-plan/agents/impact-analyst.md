@@ -14,24 +14,26 @@ Berechnet den konkreten File-Impact eines Features vor der Umsetzung. Schreibt `
 
 ### Schema `/tmp/mda-feature-plan.json`
 
+Beispiel mit neutraler Demo-Domaene (`Auftrag`/`order`). Die projektspezifischen Begriffe kommen aus `specs/model/*.md`.
+
 ```json
 {
-  "slug": "vertrag-kommentar",
-  "spec_path": "specs/features/vertrag-kommentar.md",
-  "bounded_context": "contract",
+  "slug": "auftrag-notiz",
+  "spec_path": "specs/features/auftrag-notiz.md",
+  "bounded_context": "order",
   "kind": "add-field",
-  "affects_aggregate": "Vertrag",
+  "affects_aggregate": "Auftrag",
   "files_to_create": [
-    { "path": "src/main/resources/db/migration/V3__vertrag_einreichungskommentar.sql", "purpose": "Flyway additiv", "layer": "migration" }
+    { "path": "src/main/resources/db/migration/V3__auftrag_bestaetigungsnotiz.sql", "purpose": "Flyway additiv", "layer": "migration" }
   ],
   "files_to_modify": [
-    { "path": "src/main/java/.../contract/domain/Vertrag.java", "purpose": "neues Feld + Accessor", "layer": "domain", "wrap_below_marker": true }
+    { "path": "src/main/java/.../order/domain/Auftrag.java", "purpose": "neues Feld + Accessor", "layer": "domain", "wrap_below_marker": true }
   ],
   "bpf_delta": null,
   "tests": {
-    "unit":        [{ "class": "VertragTest", "scenarios": ["einreichungskommentar_wird_gespeichert"] }],
-    "integration": [{ "class": "VertragResourceTest", "endpoints": ["POST /api/v1/vertraege/{id}/einreichen"] }],
-    "bdd_service": [{ "feature": "vertrag-kommentar.feature", "scenarios": ["Antragsteller reicht mit Kommentar ein"] }],
+    "unit":        [{ "class": "AuftragTest", "scenarios": ["bestaetigungsnotiz_wird_gespeichert"] }],
+    "integration": [{ "class": "AuftragResourceTest", "endpoints": ["POST /api/v1/auftraege/{id}/bestaetigen"] }],
+    "bdd_service": [{ "feature": "auftrag-notiz.feature", "scenarios": ["Bearbeiter bestaetigt mit Notiz"] }],
     "bdd_process": [],
     "bdd_ui":      []
   },

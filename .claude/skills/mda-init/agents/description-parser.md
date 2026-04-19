@@ -19,29 +19,31 @@ Drei JSON-Dateien in `/tmp/` (gleiche Shape wie die PlantUML-Extraktoren — som
 
 ### Schema `mda-domain-model.json`
 
+Beispiel mit neutraler Demo-Domaene (`Auftrag`/`order`):
+
 ```json
 {
-  "root_package": "ch.grudligstrasse.mda.app",
+  "root_package": "com.example.app",
   "bounded_contexts": [
     {
-      "name": "contract",
+      "name": "order",
       "aggregates": [
         {
-          "name": "Vertrag",
-          "id_type": "VertragId",
+          "name": "Auftrag",
+          "id_type": "AuftragId",
           "value_objects": [
             { "name": "Geldbetrag", "fields": [{ "name": "wert", "type": "Decimal" }, { "name": "waehrung", "type": "String" }] }
           ],
           "fields": [
             { "name": "titel", "type": "String", "constraints": { "notBlank": true, "maxLength": 160 } },
-            { "name": "status", "type": "Enum:VertragStatus" }
+            { "name": "status", "type": "Enum:AuftragStatus" }
           ],
           "use_cases": [
-            { "kind": "command", "name": "VertragErstellen", "inputs": ["titel", "antragstellerId"], "outputs": ["vertragId"] },
-            { "kind": "command", "name": "VertragEinreichen", "inputs": ["vertragId", "antragstellerId"], "outputs": [] },
-            { "kind": "query",   "name": "VertragDetail",     "inputs": ["vertragId"], "outputs": ["VertragDto"] }
+            { "kind": "command", "name": "AuftragErstellen",   "inputs": ["titel", "bearbeiterId"], "outputs": ["auftragId"] },
+            { "kind": "command", "name": "AuftragBestaetigen", "inputs": ["auftragId", "bearbeiterId"], "outputs": [] },
+            { "kind": "query",   "name": "AuftragDetail",      "inputs": ["auftragId"], "outputs": ["AuftragDto"] }
           ],
-          "events": ["VertragErstellt", "VertragEingereicht"]
+          "events": ["AuftragErstellt", "AuftragBestaetigt"]
         }
       ]
     }
@@ -55,14 +57,14 @@ Drei JSON-Dateien in `/tmp/` (gleiche Shape wie die PlantUML-Extraktoren — som
 {
   "processes": [
     {
-      "name": "VertragLifecycle",
-      "aggregate": "Vertrag",
-      "bounded_context": "contract",
-      "stages": ["ENTWURF", "IN_PRUEFUNG", "AKTIV", "ABGELEHNT"],
+      "name": "AuftragLifecycle",
+      "aggregate": "Auftrag",
+      "bounded_context": "order",
+      "stages": ["ENTWURF", "BESTAETIGT", "VERSANDT", "STORNIERT"],
       "transitions": [
-        { "from": "ENTWURF",     "trigger": "einreichen",  "to": "IN_PRUEFUNG" },
-        { "from": "IN_PRUEFUNG", "trigger": "genehmigen",  "to": "AKTIV" },
-        { "from": "IN_PRUEFUNG", "trigger": "ablehnen",    "to": "ABGELEHNT" }
+        { "from": "ENTWURF",    "trigger": "bestaetigen", "to": "BESTAETIGT" },
+        { "from": "BESTAETIGT", "trigger": "versenden",   "to": "VERSANDT" },
+        { "from": "BESTAETIGT", "trigger": "stornieren",  "to": "STORNIERT" }
       ],
       "initial": "ENTWURF"
     }
@@ -76,11 +78,11 @@ Drei JSON-Dateien in `/tmp/` (gleiche Shape wie die PlantUML-Extraktoren — som
 {
   "rules": [
     {
-      "aggregate": "Vertrag",
+      "aggregate": "Auftrag",
       "field": "betrag",
       "condition": { "gt": ["{{betrag.wert}}", 100000] },
       "actions": [
-        { "type": "showRecommendation", "message": "Ab 100k Freigabestufe 2 einholen." }
+        { "type": "showRecommendation", "message": "Ab 100k zweites Review einholen." }
       ]
     }
   ]
@@ -98,10 +100,10 @@ Der Agent extrahiert nach folgenden Heuristiken (in dieser Reihenfolge; konfligi
 | Typisierte Felder ("Geldbetrag", "IBAN", "E-Mail", "Datum") | Value Object |
 | Zahlen-/Bereichs-Angaben ("max. 160 Zeichen", "0 ≤ x ≤ 100") | Attribut-Constraint |
 | "Als <Rolle> moechte ich …" | AuthZ-Rolle + UseCase |
-| Verben + Substantive ("Vertrag einreichen", "Freigabe erteilen") | UseCase (Command) |
+| Verben + Substantive (z. B. "Auftrag bestaetigen", "Rechnung stellen") | UseCase (Command) |
 | "Liste der …" / "Uebersicht" | Query / View |
 | Statuswoerter in Aufzaehlungen ("Entwurf → In Pruefung → Aktiv") | BPF-Stages + Transition |
-| Vergangenheitsformen ("Vertrag eingereicht", "Frist abgelaufen") | Domain Event |
+| Vergangenheitsformen (z. B. "Auftrag bestaetigt", "Lieferung versandt") | Domain Event |
 | Konditionalsaetze ("wenn … dann …") in Fachsprache | BusinessRule |
 | "muss", "darf nicht", "maximal" | Validation-Constraint oder Rule |
 

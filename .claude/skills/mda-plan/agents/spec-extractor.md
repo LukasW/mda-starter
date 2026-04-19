@@ -48,7 +48,7 @@ Eine Datei `specs/features/<slug>.md` gemaess `../../_shared/feature-spec-templa
   - "neues Aggregate", "neue Entitaet" → `new-aggregate`
   - Mehrere Aenderungen, die kein Einzel-Aggregate treffen → `cross-cutting`
 - **BoundedContext**: falls unklar, aus bestehender Codebase die wahrscheinlichste Wahl nehmen (matche Fachwort gegen Paketnamen), sonst Nutzer fragen.
-- **Use-Case-Namen**: Command = Verb + Objekt (`VertragEinreichen`), Query = `<Objekt>Detail` / `<Objekt>Liste`.
+- **Use-Case-Namen**: Command = Verb + Objekt (z. B. `AuftragBestaetigen`), Query = `<Objekt>Detail` / `<Objekt>Liste`.
 - **Tests**: Mindestsatz ableiten (1 Unit + 1 Integration + 1 BDD fuer neue UseCase; zusaetzlich `@process` bei BPF, `@ui` bei neuem Screen).
 
 ## Regeln

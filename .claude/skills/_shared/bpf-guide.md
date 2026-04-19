@@ -46,15 +46,15 @@ Flyway: `V2__bpf.sql` im Starter; Deltas additiv.
 ## Code-Pattern
 
 ```java
-// domain/process/VertragLifecycle.java
-public final class VertragLifecycle implements BpfDefinition<VertragStage> {
-    @Override public VertragStage initial() { return VertragStage.ENTWURF; }
-    @Override public Map<VertragStage, List<Transition<VertragStage>>> transitions() {
+// domain/process/AuftragLifecycle.java — BEISPIEL (neutrale Domaene)
+public final class AuftragLifecycle implements BpfDefinition<AuftragStage> {
+    @Override public AuftragStage initial() { return AuftragStage.ENTWURF; }
+    @Override public Map<AuftragStage, List<Transition<AuftragStage>>> transitions() {
         return Map.of(
-            VertragStage.ENTWURF,     List.of(new Transition<>("einreichen", VertragStage.IN_PRUEFUNG)),
-            VertragStage.IN_PRUEFUNG, List.of(
-                new Transition<>("genehmigen", VertragStage.AKTIV),
-                new Transition<>("ablehnen",   VertragStage.ABGELEHNT)));
+            AuftragStage.ENTWURF,    List.of(new Transition<>("bestaetigen", AuftragStage.BESTAETIGT)),
+            AuftragStage.BESTAETIGT, List.of(
+                new Transition<>("versenden",  AuftragStage.VERSANDT),
+                new Transition<>("stornieren", AuftragStage.STORNIERT)));
     }
 }
 ```

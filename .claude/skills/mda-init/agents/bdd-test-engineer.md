@@ -30,11 +30,11 @@ Das erzeugte `docs/architecture/testing.md` macht die tatsächlichen Zahlen sich
   @Suite
   @IncludeEngines("cucumber")
   @SelectClasspathResource("features/service")
-  @ConfigurationParameter(key = Constants.GLUE_PROPERTY_NAME, value = "ch.grudligstrasse.mda.bdd.service")
+  @ConfigurationParameter(key = Constants.GLUE_PROPERTY_NAME, value = "<root-package>.bdd.service")
   @ConfigurationParameter(key = Constants.FILTER_TAGS_PROPERTY_NAME, value = "@service and not @ui")
   class ServiceBddIT {}
   ```
-  Analog `UiBddIT` mit Tag `@ui`, Glue `ch.grudligstrasse.mda.bdd.ui`.
+  Analog `UiBddIT` mit Tag `@ui`, Glue `<root-package>.bdd.ui`.
 - `*IT` Klassen werden von Failsafe exekutiert (nicht von Surefire).
 
 ## Schritt-Design

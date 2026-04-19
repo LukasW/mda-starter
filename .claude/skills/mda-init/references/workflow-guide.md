@@ -12,8 +12,8 @@ Gemäss Stack 7.2. Nur für echte Workflows mit längeren Laufzeiten, Retries, H
 ## Ablageort
 
 - BPMN: `src/main/resources/bpmn/{{workflowId}}.bpmn`
-- Worker: `ch.grudligstrasse.mda.workflow.adapter.in.camunda.{{Topic}}Worker`
-- Deployment: `ch.grudligstrasse.mda.workflow.config.BpmnAutoDeployment`
+- Worker: `<root-package>.workflow.adapter.in.camunda.{{Topic}}Worker`
+- Deployment: `<root-package>.workflow.config.BpmnAutoDeployment`
 
 ## Extension-Wahl
 
@@ -29,7 +29,7 @@ Die gewählte Variante + Version landet in ADR `0007-camunda7-embedded.md`.
 Pro `startEvent` mit Message-Typ wird ein Kafka-Consumer generiert:
 
 ```
-helvetia.<domain>.<entity>.<event>.v1  →  correlateMessage(workflowId, payload)
+<tenant>.<domain>.<entity>.<event>.v1  →  correlateMessage(workflowId, payload)
 ```
 
 Consumer-Klasse `…/workflow/adapter/in/kafka/{{Topic}}Consumer.java` mit SmallRye Reactive Messaging.

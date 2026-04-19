@@ -1,48 +1,48 @@
-# Plan-Beispiel — vertrag-kommentar
+# Plan-Beispiel — auftrag-notiz (neutrale Demo-Domaene)
 
-Dies ist ein Muster-Plan fuer ein `add-field`-Feature. Wird nicht rausgeschrieben; dient als Referenz.
+Dies ist ein Muster-Plan fuer ein `add-field`-Feature. Wird nicht rausgeschrieben; dient als Referenz. Die Domaene `Auftrag`/`order` ist bewusst generisch — ersetze sie in realen Plaenen durch die fachspezifischen Begriffe aus `specs/model/*.md`.
 
 ---
 
 ```markdown
-# Feature Plan — vertrag-kommentar
+# Feature Plan — auftrag-notiz
 
-Bezogen auf: `specs/features/vertrag-kommentar.md`
-Bounded Context: contract
+Bezogen auf: `specs/features/auftrag-notiz.md`
+Bounded Context: order
 Kind: add-field
 
 ## Uebersicht
-Antragsteller koennen beim Einreichen einen optionalen Kommentar (max. 2000 Zeichen) erfassen. Kommentar ist Teil des Vertrags-Aggregats und read-only ab Status `IN_PRUEFUNG`.
+Bearbeiter koennen beim Bestaetigen eine optionale Notiz (max. 2000 Zeichen) erfassen. Notiz ist Teil des Auftrags-Aggregats und read-only ab Status `VERSANDT`.
 
 ## Betroffene Schichten
-- Domain: ja (`Vertrag.java`, evtl. VO `EinreichungsKommentar.java`)
-- Application: ja (`VertragEinreichenUseCase`, `VertragApplicationService`)
-- Adapter in (REST): ja (`VertragResource`, Request-Record)
+- Domain: ja (`Auftrag.java`, evtl. VO `BestaetigungsNotiz.java`)
+- Application: ja (`AuftragBestaetigenUseCase`, `AuftragApplicationService`)
+- Adapter in (REST): ja (`AuftragResource`, Request-Record)
 - Adapter out (Persistence): ja (JPA-Entity + Mapper)
-- Frontend: ja (`vertrag-detail`)
-- Migration: `V3__vertrag_einreichungskommentar.sql` (ja)
+- Frontend: ja (`auftrag-detail`)
+- Migration: `V3__auftrag_bestaetigungsnotiz.sql` (ja)
 
 ## Zu erstellende Dateien
-- [ ] `src/main/resources/db/migration/V3__vertrag_einreichungskommentar.sql` — Flyway additiv
-- [ ] `src/test/java/.../contract/domain/VertragKommentarTest.java` — Unit auf Aggregate
-- [ ] `src/test/resources/features/service/vertrag-kommentar.feature` — BDD `@service`
-- [ ] `src/test/java/.../bdd/service/VertragKommentarSteps.java`
+- [ ] `src/main/resources/db/migration/V3__auftrag_bestaetigungsnotiz.sql` — Flyway additiv
+- [ ] `src/test/java/.../order/domain/AuftragNotizTest.java` — Unit auf Aggregate
+- [ ] `src/test/resources/features/service/auftrag-notiz.feature` — BDD `@service`
+- [ ] `src/test/java/.../bdd/service/AuftragNotizSteps.java`
 
 ## Zu aendernde Dateien
-- [ ] `src/main/java/.../contract/domain/Vertrag.java` — neues Feld + Accessor; **Wrap unter Marker**: ja
-- [ ] `src/main/java/.../contract/application/port/in/VertragEinreichenUseCase.java` — Command-Record erweitern; **Wrap unter Marker**: nein (neuer Record-Component)
-- [ ] `src/main/java/.../contract/adapter/in/rest/VertragResource.java` — Request-Record erweitern; **Wrap unter Marker**: ja
-- [ ] `src/main/java/.../contract/adapter/out/persistence/VertragJpaEntity.java` — neues Column-Feld; **Wrap unter Marker**: ja
-- [ ] `src/main/webui/src/app/pages/vertrag-detail/vertrag-detail.html` — Textarea-Block + Bindung
-- [ ] `src/main/webui/src/app/pages/vertrag-detail/vertrag-detail.ts` — Signal + FormControl
+- [ ] `src/main/java/.../order/domain/Auftrag.java` — neues Feld + Accessor; **Wrap unter Marker**: ja
+- [ ] `src/main/java/.../order/application/port/in/AuftragBestaetigenUseCase.java` — Command-Record erweitern; **Wrap unter Marker**: nein (neuer Record-Component)
+- [ ] `src/main/java/.../order/adapter/in/rest/AuftragResource.java` — Request-Record erweitern; **Wrap unter Marker**: ja
+- [ ] `src/main/java/.../order/adapter/out/persistence/AuftragJpaEntity.java` — neues Column-Feld; **Wrap unter Marker**: ja
+- [ ] `src/main/webui/src/app/pages/auftrag-detail/auftrag-detail.html` — Textarea-Block + Bindung
+- [ ] `src/main/webui/src/app/pages/auftrag-detail/auftrag-detail.ts` — Signal + FormControl
 
 ## BPF-Delta
 keine
 
 ## Test-Strategie
-- [ ] Unit: `VertragTest` — 2 Szenarien (Kommentar gesetzt / Kommentar leer)
-- [ ] Integration (`@QuarkusTest`): `VertragResourceTest` — POST einreichen mit und ohne Kommentar
-- [ ] BDD `@service`: "Antragsteller reicht mit Kommentar ein"
+- [ ] Unit: `AuftragTest` — 2 Szenarien (Notiz gesetzt / Notiz leer)
+- [ ] Integration (`@QuarkusTest`): `AuftragResourceTest` — POST bestaetigen mit und ohne Notiz
+- [ ] BDD `@service`: "Bearbeiter bestaetigt mit Notiz"
 - [ ] BDD `@process`: keine
 - [ ] BDD `@ui`: keine
 
@@ -55,8 +55,8 @@ keine
 - [x] Cross-BC: kein neuer Service-Call
 
 ## Rollback-Strategie
-- `V<n+1>__undo_einreichungskommentar.sql` mit `ALTER TABLE vertrag DROP COLUMN ...`.
-- `Vertrag.java`, JPA-Entity, DTO, UI zurueckdrehen; alte Unit/BDD-Features loeschen.
+- `V<n+1>__undo_bestaetigungsnotiz.sql` mit `ALTER TABLE auftrag DROP COLUMN ...`.
+- `Auftrag.java`, JPA-Entity, DTO, UI zurueckdrehen; alte Unit/BDD-Features loeschen.
 
 ## Offene Fragen
 keine

@@ -48,7 +48,7 @@ Parallel-Abfragen (Grep/Glob):
 
 Agent: `agents/impact-analyst.md`. Berechnet:
 
-- Liste **neu** anzulegender Dateien (Domain / Application / Adapter / Frontend).
+- Liste **neu** anzulegender Dateien (Domain / Application / Adapter / Frontend). **Frontend-Artefakte (Components/Services) werden ausschliesslich als `ng generate component/service …`-Befehle geplant — niemals als manuell anzulegende `.ts`/`.html`/`.scss`-Dateien.**
 - Liste **zu aendernder** Dateien (inkl. ob unterhalb des `// mda-generator: manual-edits-below`-Markers).
 - Naechste Flyway-Migration (additiv, nie editieren).
 - Tests: Unit + Integration + BDD-Szenarien.
@@ -80,7 +80,8 @@ Kind: <new-aggregate | add-usecase | add-bpf-transition | add-field | new-screen
 
 ## Zu erstellende Dateien
 - [ ] `<pfad>.java` — Zweck (1 Zeile)
-- [ ] `<pfad>.ts` — Zweck
+- [ ] `ng generate component pages/<name> --skip-tests` — neue Seite (Frontend: nur via `ng generate`, nicht per Hand)
+- [ ] `ng generate service core/<name> --skip-tests` — neuer Service
 
 ## Zu aendernde Dateien
 - [ ] `<pfad>.java` — Art der Aenderung; **Wrap unterhalb Marker?** ja/nein

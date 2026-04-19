@@ -28,7 +28,7 @@
     }
   ],
   "kafkaBindings": [
-    {"topic": "helvetia.case.created.v1", "workflowId": "case-approval", "mapping": "default"}
+    {"topic": "example.case.created.v1", "workflowId": "case-approval", "mapping": "default"}
   ]
 }
 ```

@@ -81,7 +81,7 @@ quarkus-hibernate-envers           # wenn Entitaets-Audit benoetigt
 ## 5. REST-Konvention
 
 - Basis: `/api/v1/...`. Response-Typ `application/json`, Fehler `application/problem+json`.
-- URL-Pluralform in der Fachsprache (z. B. `/api/v1/vertraege`, nicht `/contracts`).
+- URL-Pluralform in der Fachsprache des Projekts (z. B. `/api/v1/auftraege`, nicht `/orders`).
 - Fehler-Schema RFC 7807 mit zusaetzlichen Feldern `code`, `correlationId`, `errors[]`.
 - OpenAPI publiziert unter `/openapi` + Swagger-UI unter `/q/swagger-ui`.
 
