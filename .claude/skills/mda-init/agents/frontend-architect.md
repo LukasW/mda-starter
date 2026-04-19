@@ -8,6 +8,7 @@ Du scaffoldest das Angular-21-Frontend unter `src/main/webui/` und integrierst e
 - `/tmp/mda-process-model.json` — BPF-Stages + Transitions (fuer Detail-Actions).
 - `/tmp/mda-context7-cache.md` — aktuelle Angular-/Material-/Quinoa-Versionen.
 - `references/angular-quinoa-guide.md` — Kompatibilitaetsmatrix + Proxy-Loop-Fix.
+- `references/angular-ux-patterns.md` — normative UX-Bausteine (Stepper, Dialoge, Listen, Skeletons, Dark-Mode, i18n, a11y).
 
 ## Akzeptanzkriterien
 
@@ -20,6 +21,8 @@ Du scaffoldest das Angular-21-Frontend unter `src/main/webui/` und integrierst e
 7. `angular.json`: `proxyConfig` NICHT in der Default-`development`-Konfiguration. Proxy lebt in einer separaten `standalone`-Konfiguration.
 8. `angular.json` Budgets hochgesetzt (initial 800 kB Warning / 1.5 MB Error, anyComponentStyle 8 kB / 16 kB).
 9. Nach deinem Lauf muss `./mvnw clean verify` gruen bleiben und `./mvnw quarkus:dev` sowohl Quarkus (auf 8080) als auch `ng serve` (auf 4200) starten; Smoke-Test: `curl http://localhost:8080/api/v1/<resource>` antwortet sofort, `curl http://localhost:8080/<aggregate>` liefert die Angular-Shell.
+10. UX-Bausteine aus `references/angular-ux-patterns.md` sind verdrahtet: BPF-Stepper im Detail, Bestaetigungs-Dialog fuer destruktive Trigger, `MatTableDataSource` + `MatSort` + `MatPaginator` in Listen, Skeleton-Loader statt Spinner beim Daten-Load, Dark-Mode-Toggle im Shell, `@angular/localize` initialisiert, `aria-label` auf allen Icon-Buttons.
+11. `ApiClient.mapError` fuellt `ApiError.fieldErrors[]`, und `<aggregate>-erfassen` / `-metadaten`-Formulare mappen `fieldErrors` per `ctrl.setErrors({ server: … })` in das Reactive Form.
 
 ## Ablauf
 
@@ -40,6 +43,7 @@ cd webui
 npm install
 npx ng add @angular/material@<X> --theme=azure-blue --typography --animations=enabled --skip-confirmation
 npm install @angular/animations@<X> --save
+npx ng add @angular/localize --skip-confirmation
 ```
 
 ### 3. Services + Komponenten via CLI
@@ -70,11 +74,14 @@ ng generate component pages/<aggregate>-detail --skip-tests
 - Pro Seite Material-Komponenten nach Tabelle unten.
 - Routen in `app.routes.ts` lazy laden.
 
-| Seite | Material-Komponenten |
+| Seite | Material-Komponenten (Pflicht) |
 |---|---|
-| liste | `MatTable`, `MatChip`, `MatIconButton`, `MatProgressSpinner`, `MatCard` |
-| erfassen | `MatFormField`, `MatInput`, `MatSelect`, `MatDatepicker` (+ `provideNativeDateAdapter()`), `MatCard`, `MatSnackBar` |
-| detail | `MatCard`, `MatChip`, `MatDivider`, `MatDialog` (fuer Begruendungs-Dialoge), BPF-Action-Buttons |
+| shell | `MatToolbar`, `MatSidenav`, `MatNavList`, `MatIcon`, Dark-Mode-Toggle (Signal + `color-scheme`) |
+| liste | `MatTable` mit `MatTableDataSource<T>`, `MatSort`, `MatPaginator` (pageSize 25), `MatFormField` fuer Filter, `MatChipListbox` fuer BPF-Stage-Filter, Skeleton-Loader statt Spinner |
+| erfassen | `MatFormField`, `MatInput`, `MatSelect`, `MatDatepicker` (+ `provideNativeDateAdapter()`), `MatCard`, `MatSnackBar`; bei >1 fachlichen Stufen als `MatStepper` linear mit Pro-Stufe-Validierung |
+| detail | `MatCard`, `MatChip`, `MatDivider`, `MatStepper` (nicht-editierbar) fuer BPF-Lifecycle-Anzeige ODER `MatChipSet`-Fallback; `MatDialog` Bestaetigungs-/Begruendungs-Dialoge (Pflicht-Textarea bei destruktiven Triggern), BPF-Action-Buttons nur fuer aktuelle Stage |
+
+Details und Mappings: `references/angular-ux-patterns.md`.
 
 ### 5. Quinoa-Integration
 
@@ -112,3 +119,5 @@ pkill -f quarkus
 | `./mvnw quarkus:dev` laeuft, aber `/api/v1/...` haengt | Proxy-Loop (Quinoa ↔ proxy.conf.json) | `ignored-path-prefixes` setzen und `proxyConfig` aus Default-Konfig entfernen |
 | Bundle exceeds budget 500 kB | Material-Themes sind schwer | Budgets auf 800 kB / 1.5 MB heben |
 | `Could not resolve "@angular/animations/browser"` | `provideAnimationsAsync` ohne Animations-Package | `npm install @angular/animations` |
+| Form zeigt Server-Validierungsfehler nicht an | `ApiError.fieldErrors` wird nicht in das Form gemappt | In `subscribe({ error })` `ctrl.setErrors({ server: fe.message })` fuer jedes `fe` aus `err.fieldErrors` |
+| Icon-Buttons ohne Screenreader-Text | `aria-label` fehlt | Jedes `mat-icon-button` mit `aria-label="…"` versehen (UX + BDD-Selektor) |

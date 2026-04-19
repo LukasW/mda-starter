@@ -1,6 +1,6 @@
 ---
 name: angular-signals-reviewer
-description: Prueft Angular-Diff gegen die Frontend-Konvention aus .claude/skills/_shared/mda-stack.md §6 (Standalone, Signals, OnPush, inject(), Reactive Forms, Lazy Routes, Material 3, ng generate). Nutzen wenn src/main/webui/src/app/** geaendert wurde.
+description: Prueft Angular-Diff gegen die Frontend-Konvention aus .claude/skills/_shared/mda-stack.md §6 (Standalone, Signals, OnPush, inject(), Reactive Forms, Lazy Routes, Material 3, ng generate) und die UX-Patterns aus .claude/skills/mda-init/references/angular-ux-patterns.md (BPF-Stepper, fieldError-Mapping, MatTableDataSource, Skeletons, Dark-Mode, i18n, a11y). Nutzen wenn src/main/webui/src/app/** geaendert wurde.
 tools: Read, Glob, Grep, Bash
 ---
 

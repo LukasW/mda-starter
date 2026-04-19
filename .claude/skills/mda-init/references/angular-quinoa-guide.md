@@ -98,15 +98,17 @@ Aufruf im Quinoa-Modus: `ng serve` (default). Standalone-Modus: `ng serve --conf
 
 Pro Aggregate mit Listen-Use-Case + Erfassen-Use-Case:
 
-- `<aggregate>-liste` — `MatTable`, Filter, Refresh, `MatChip` pro Status.
-- `<aggregate>-erfassen` — Reactive Form mit `MatFormField`, `MatSelect`, `MatDatepicker`, SnackBar bei Success / Error.
-- `<aggregate>-detail` — Metadaten, Kindobjekte (z. B. Versionen), BPF-Transition-Buttons (nur wenn aktuelle Stage die Transition erlaubt), `MatDialog` für Bestätigungs-/Begründungs-Dialoge.
+- `<aggregate>-liste` — `MatTable` + `MatTableDataSource<T>` + `MatSort` + `MatPaginator` (pageSize 25), Filter via `MatFormField`, Stage-Filter via `MatChipListbox`, Skeleton-Loader beim Daten-Load.
+- `<aggregate>-erfassen` — Reactive Form mit `MatFormField`, `MatSelect`, `MatDatepicker`, SnackBar bei Success/Error. Bei > 1 fachlichen Stufen als linearer `MatStepper` mit Pro-Stufe-Validierung.
+- `<aggregate>-detail` — Metadaten, Kindobjekte (z. B. Versionen), **`MatStepper` (nicht-editierbar) zur BPF-Lifecycle-Anzeige**, BPF-Transition-Buttons (nur für aktuelle Stage), `MatDialog` für Bestätigungs-/Begründungs-Dialoge (Pflicht-Textarea bei destruktiven Triggern).
 
 Plus übergeordnet:
 
-- `layout/app-shell` — `MatToolbar` + `MatSidenav` + `MatNavList`, Sidenav-Signal.
-- `core/api-client` — zentrale `HttpClient`-Abstraktion mit einheitlichem Fehler-Mapping.
+- `layout/app-shell` — `MatToolbar` + `MatSidenav` + `MatNavList`, Sidenav-Signal, **Dark-Mode-Toggle** (Signal + `color-scheme: light dark`).
+- `core/api-client` — zentrale `HttpClient`-Abstraktion mit einheitlichem Fehler-Mapping; `ApiError.fieldErrors[]` wird im Aufrufer per `ctrl.setErrors({ server: ... })` ins Reactive Form abgebildet.
 - `core/models` — TypeScript-Typen, die die Java-DTOs spiegeln (bis OpenAPI-Codegen verdrahtet ist).
+
+Normative Details zu diesen Patterns (Pflicht, nicht optional): siehe **`angular-ux-patterns.md`** (BPF-Stepper, Formular-Stepper, Field-Error-Mapping, Filter/Sort/Pagination, Skeletons, Dark-Mode, i18n, WCAG 2.2 AA).
 
 ## Budgets
 
