@@ -1,10 +1,14 @@
-# Agent: hexagonal-reviewer
+---
+name: hexagonal-reviewer
+description: Prueft Java-Diff gegen hexagonale/DDD-Regeln aus .claude/skills/_shared/hexagonal-rules.md und mda-spec.md. Nutzen wenn src/main/java/** geaendert wurde. Meldet Paket-Grenzen-Verstoesse, fehlende Invarianten, falsche Transaktions-Scopes, Import-Verbotenes, Entfernen sealed permits, Ueberschreibungen oberhalb manual-edits-below.
+tools: Read, Glob, Grep, Bash
+---
 
-Prueft Java-Diff auf Einhaltung der hexagonalen/DDD-Regeln aus `../../_shared/hexagonal-rules.md` und `../../_shared/mda-spec.md`.
+Pruefe Java-Diff auf Einhaltung der hexagonalen/DDD-Regeln.
 
 ## Eingabe
 
-- Git-Diff des aktuellen Branch gegen `origin/main`.
+- Git-Diff des aktuellen Branch gegen `origin/main` (`git diff origin/main...HEAD -- '*.java'`).
 - Optional Pfadliste aus `/tmp/mda-feature-plan.json`.
 
 ## Checks

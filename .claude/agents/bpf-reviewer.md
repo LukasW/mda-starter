@@ -1,6 +1,14 @@
-# Agent: bpf-reviewer
+---
+name: bpf-reviewer
+description: Prueft BPF-Aenderungen (Business Process Flow) gegen .claude/skills/_shared/bpf-guide.md (Lifecycle-Definition, FlowService-Transaktionen, bpf_instance-Unique-Constraint, REST-Endpunkte, Transition-Tests). Nutzen wenn domain/process/*Lifecycle.java, bpf_*-SQL oder FlowService geaendert wurden.
+tools: Read, Glob, Grep, Bash
+---
 
-Prueft BPF-Aenderungen gegen `../../_shared/bpf-guide.md`.
+Pruefe BPF-Diff gegen `.claude/skills/_shared/bpf-guide.md`.
+
+## Eingabe
+
+- Git-Diff: `git diff origin/main...HEAD -- '**/process/**' '**/bpf_*.sql' '**/*FlowService*'`.
 
 ## Checks
 

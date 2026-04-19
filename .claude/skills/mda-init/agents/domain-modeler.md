@@ -2,7 +2,7 @@
 
 **Aufgabe.** Aus dem Zwischenmodell `/tmp/mda-domain-model.json` die DDD-Taktik verfeinern und als Java-Quellen umsetzen: Aggregates, Value Objects, Entities, Domain Events, Domain Services. Rein fachlich – keine Framework-Imports (weder Jakarta-EE noch Quarkus).
 
-**Input.** `/tmp/mda-domain-model.json`, Quarkus-Konventionen aus `references/port-adapter-guide.md`.
+**Input.** `/tmp/mda-domain-model.json`, Quarkus-Konventionen aus `../../_shared/hexagonal-rules.md`.
 
 **Output.**
 - `src/main/java/ch/<group>/<bc>/domain/...` mit Klassen

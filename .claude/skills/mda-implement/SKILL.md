@@ -107,17 +107,17 @@ Agent: `agents/feature-test-writer.md`. Schreibt gemaess Plan-Matrix:
 
 ### 6. Reviewer-Runde
 
-Vor Commit parallel je nach Diff:
+Vor Commit parallel je nach Diff — ueber `Agent` mit `subagent_type` (die Reviewer liegen als first-class Sub-Agents unter `.claude/agents/`):
 
-| Diff-Bereich | Reviewer-Agent |
+| Diff-Bereich | `subagent_type` |
 |---|---|
-| `src/main/java/**/domain/**` + `**/application/**` | `agents/hexagonal-reviewer.md` |
-| `src/main/java/**/adapter/**` | `agents/hexagonal-reviewer.md` |
-| `src/main/webui/src/app/**` | `agents/angular-signals-reviewer.md` |
-| `src/test/resources/features/**/*.feature` + Steps | `agents/bdd-cucumber-author.md` |
-| Aenderung an `domain/process/*Lifecycle.java` oder `bpf_*`-SQL | `agents/bpf-reviewer.md` |
+| `src/main/java/**/domain/**` + `**/application/**` | `hexagonal-reviewer` |
+| `src/main/java/**/adapter/**` | `hexagonal-reviewer` |
+| `src/main/webui/src/app/**` | `angular-signals-reviewer` |
+| `src/test/resources/features/**/*.feature` + Steps | `bdd-cucumber-author` |
+| Aenderung an `domain/process/*Lifecycle.java` oder `bpf_*`-SQL | `bpf-reviewer` |
 
-Gemeldete Findings **vor Commit** beheben. Kein `--no-verify`.
+Parallel-Aufrufe: mehrere `Agent`-Calls in **einem** Tool-Batch. Gemeldete Findings **vor Commit** beheben. Kein `--no-verify`.
 
 ### 7. Doku-Delta
 
@@ -224,9 +224,9 @@ Bevor eine Datei geschrieben wird: gegen `../_shared/drift-guards.md` pruefen. V
 ## Referenzen
 
 - `../_shared/*` — MDA-Regeln (Pflicht).
-- `agents/feature-architect.md` — Delta-Umsetzung.
-- `agents/feature-test-writer.md` — Testpyramide.
-- `agents/hexagonal-reviewer.md` — Java-Review.
-- `agents/angular-signals-reviewer.md` — Frontend-Review.
-- `agents/bdd-cucumber-author.md` — BDD-Review.
-- `agents/bpf-reviewer.md` — BPF-Review.
+- `agents/feature-architect.md` — Delta-Umsetzung (Skill-interner Prompt).
+- `agents/feature-test-writer.md` — Testpyramide (Skill-interner Prompt).
+- `.claude/agents/hexagonal-reviewer.md` — first-class Sub-Agent.
+- `.claude/agents/angular-signals-reviewer.md` — first-class Sub-Agent.
+- `.claude/agents/bdd-cucumber-author.md` — first-class Sub-Agent.
+- `.claude/agents/bpf-reviewer.md` — first-class Sub-Agent.

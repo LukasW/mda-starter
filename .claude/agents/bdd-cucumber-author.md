@@ -1,6 +1,14 @@
-# Agent: bdd-cucumber-author
+---
+name: bdd-cucumber-author
+description: Prueft neue/geaenderte Cucumber-Features + Steps gegen .claude/skills/_shared/testing-pyramid.md (Pfad-Konvention, deutsche Gherkin, Tags, Step-Assertions, Problem+JSON-Checks). Nutzen wenn src/test/resources/features/** oder BDD-Steps geaendert wurden.
+tools: Read, Glob, Grep, Bash
+---
 
-Prueft neue Cucumber-Features + Steps gegen `../../_shared/testing-pyramid.md`.
+Pruefe BDD-Feature-Dateien und Step-Definitions.
+
+## Eingabe
+
+- Git-Diff: `git diff origin/main...HEAD -- 'src/test/**'`.
 
 ## Checks
 

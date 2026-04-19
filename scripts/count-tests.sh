@@ -32,6 +32,7 @@ count_features() { find "$1" -name '*.feature' -type f 2>/dev/null | wc -l | tr 
 bdd_service=$(count_features "$features/service")
 bdd_process=$(count_features "$features/process")
 bdd_rules=$(count_features "$features/rules")
+bdd_workflow=$(count_features "$features/workflow")
 bdd_ui=$(count_features "$features/ui")
 
 printf 'Unit tests:        %s\n' "$unit"
@@ -40,17 +41,18 @@ printf 'Integration tests: %s (@QuarkusTest)\n' "$integration"
 printf 'BDD service:       %s feature(s)\n' "$bdd_service"
 printf 'BDD process:       %s feature(s)\n' "$bdd_process"
 printf 'BDD rules:         %s feature(s)\n' "$bdd_rules"
+printf 'BDD workflow:      %s feature(s)\n' "$bdd_workflow"
 printf 'BDD ui:            %s feature(s)\n' "$bdd_ui"
 
-bdd_srp=$((bdd_service + bdd_process + bdd_rules))
+bdd_non_ui=$((bdd_service + bdd_process + bdd_rules + bdd_workflow))
 fail=0
 [ "$unit" -lt $((2 * integration)) ] && fail=1
-[ $((2 * integration)) -lt $((4 * bdd_srp)) ] && fail=1
-[ $((4 * bdd_srp)) -lt $((4 * bdd_ui)) ] && fail=1
+[ "$integration" -lt $((2 * bdd_non_ui)) ] && fail=1
+[ "$bdd_non_ui" -lt "$bdd_ui" ] && fail=1
 
 if [ "$fail" = "0" ]; then
   echo "Pyramide: OK"
   exit 0
 fi
-echo "Pyramide: FAIL (unit>=2*integration>=4*(service+process+rules)>=4*ui)"
+echo "Pyramide: FAIL (unit>=2*integration; integration>=2*(service+process+rules+workflow); non_ui>=ui)"
 exit 1

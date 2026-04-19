@@ -1,6 +1,14 @@
-# Agent: angular-signals-reviewer
+---
+name: angular-signals-reviewer
+description: Prueft Angular-Diff gegen die Frontend-Konvention aus .claude/skills/_shared/mda-stack.md §6 (Standalone, Signals, OnPush, inject(), Reactive Forms, Lazy Routes, Material 3, ng generate). Nutzen wenn src/main/webui/src/app/** geaendert wurde.
+tools: Read, Glob, Grep, Bash
+---
 
-Prueft Angular-Diff gegen die Frontend-Konvention aus `../../_shared/mda-stack.md` §6.
+Pruefe Angular-Diff gegen die Frontend-Konvention.
+
+## Eingabe
+
+- Git-Diff: `git diff origin/main...HEAD -- 'src/main/webui/**'`.
 
 ## Checks
 

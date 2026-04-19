@@ -78,6 +78,15 @@ Build-Output: `src/main/webui/dist/webui/browser/` (Angular `@angular/build:appl
 
 Details: `.claude/skills/_shared/hexagonal-rules.md`.
 
+## Harness-Konfiguration (`.claude/`)
+
+- `.claude/settings.json` — Permissions (allow/deny), `env MDA_UI_MODE=rest`, Statusline, PreToolUse-Hooks.
+- `.claude/hooks/drift-guard.sh` — blockt `Edit`/`Write` bei Flyway-Re-Edit, sealed-permit-Entfernung, Loeschen des `manual-edits-below`-Markers, ArchUnit-Aufweichung, REST-Pfad-Rename ohne v2-Bump.
+- `.claude/hooks/bash-safeguard.sh` — blockt `--no-verify`, `git reset --hard`, `rm -rf src/`, Force-Push auf `main`, `-DskipTests`.
+- `.claude/agents/` — first-class Reviewer-Sub-Agents: `hexagonal-reviewer`, `angular-signals-reviewer`, `bdd-cucumber-author`, `bpf-reviewer`. Werden von `mda-implement` via `subagent_type` aufgerufen.
+- `.claude/statusline.sh` — zeigt Branch + Feature-Slug + Plan/Impl-Status.
+- MCP: `context7` ist Pflicht fuer Versions-Lookups (siehe `_shared/mda-stack.md` §9).
+
 ## BPF — Vertragslifecycle + Fristenerinnerung
 
 - Definitionen in `…domain/VertragLifecycle.java` bzw. `…domain/FristenErinnerungProcess.java`.

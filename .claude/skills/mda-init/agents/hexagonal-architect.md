@@ -5,7 +5,7 @@
 **Input.**
 - Generierte Domain-Klassen (Output des domain-modeler).
 - `/tmp/mda-domain-model.json`.
-- `references/port-adapter-guide.md`.
+- `../../_shared/hexagonal-rules.md`.
 
 **Output.**
 - `application/port/in/*UseCase.java` – Command- / Query-Interfaces.
