@@ -74,8 +74,8 @@
       "Bash(rm:-rf plan/*)",
       "Bash(rm:-rf .claude)",
       "Bash(rm:-rf .claude/*)",
-      "Bash(mvn:*-DskipTests*)",
-      "Bash(./mvnw:*-DskipTests*)"
+      "Bash(mvn *-DskipTests*)",
+      "Bash(./mvnw *-DskipTests*)"
     ]
   },
   "hooks": {
