@@ -1,0 +1,33 @@
+// Template: domain/process/{{Process}}Stage.java
+// Pure Java, keine Framework-Imports.
+package {{PackageBase}}.{{bc}}.domain.process;
+
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.Set;
+
+public enum {{Process}}Stage {
+    /* {{stages_as_enum_entries}} — z. B. LEAD, QUALIFIED, OPPORTUNITY, WON, LOST */
+    ;
+
+    /** Erlaubte Transitionen aus /tmp/mda-process-model.json. */
+    private static final Map<{{Process}}Stage, Map<String, {{Process}}Stage>> TRANSITIONS = Map.of(
+        /* z. B.
+        LEAD,        Map.of("qualify", QUALIFIED),
+        QUALIFIED,   Map.of("promote", OPPORTUNITY),
+        OPPORTUNITY, Map.of("close",   WON, "lose", LOST)
+        */
+    );
+
+    private static final Set<{{Process}}Stage> FINAL_STAGES = EnumSet.of(/* WON, LOST */);
+
+    public boolean isFinal() { return FINAL_STAGES.contains(this); }
+
+    public {{Process}}Stage transition(String trigger) {
+        {{Process}}Stage next = TRANSITIONS.getOrDefault(this, Map.of()).get(trigger);
+        if (next == null) {
+            throw new IllegalStateException("Trigger '" + trigger + "' aus Stage '" + this + "' nicht erlaubt.");
+        }
+        return next;
+    }
+}

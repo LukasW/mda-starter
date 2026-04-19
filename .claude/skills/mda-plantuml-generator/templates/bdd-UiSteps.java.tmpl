@@ -1,0 +1,29 @@
+// Template: src/test/java/{{pkg_path}}/bdd/ui/{{Aggregate}}UiSteps.java
+// Zwei Implementierungs-Zweige abhängig von System-Property MDA_UI_MODE:
+//   - "playwright" (default, wenn Chromium verfügbar): echter Browser
+//   - "rest"       (CI-Fallback): Szenario wird via REST validiert, gleiche Assertions.
+package {{PackageBase}}.bdd.ui;
+
+import io.cucumber.java.de.*;
+import io.quarkus.test.junit.QuarkusTest;
+
+@QuarkusTest
+public class {{Aggregate}}UiSteps {
+
+    private final String mode = System.getProperty("MDA_UI_MODE", "rest");
+
+    @Angenommen("^ich bin auf der \"{{Aggregate}}\"-Übersichtsseite$")
+    public void aufUebersichtsseite() { /* mode==playwright → open page; mode==rest → no-op */ }
+
+    @Wenn("^ich im Formular \"Name\" \"([^\"]+)\" und \"Email\" \"([^\"]+)\" eingebe$")
+    public void formularAusfuellen(String name, String email) { /* Playwright fill OR zwischenspeichern */ }
+
+    @Und("^ich auf \"Speichern\" klicke$")
+    public void aufSpeichernKlicken() { /* Playwright click OR REST POST */ }
+
+    @Dann("^erscheint der {{Aggregate}} \"([^\"]+)\" in der Liste$")
+    public void erscheintInListe(String name) { /* Playwright expect OR REST GET List */ }
+
+    @Und("^der Status ist \"([^\"]+)\"$")
+    public void derStatusIst(String status) { /* Playwright expect text OR REST GET by id */ }
+}

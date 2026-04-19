@@ -1,0 +1,70 @@
+# CLAUDE.md
+
+## Was dieses Repo tut
+{{project_purpose}}
+
+Modellgetriebene Quarkus-Applikation nach `specs/MDA-Spezifikation.md` und `specs/MDA-Quarkus-Stack.md`.
+Die fachliche Struktur wird aus PlantUML-Klassendiagrammen in `specs/model/*.puml` generiert.
+
+## Kommandos
+
+| Zweck | Kommando |
+|---|---|
+| Dev-Server (Live-Reload, Dev-UI unter /q/dev) | `./mvnw quarkus:dev` |
+| Alle Tests (Unit + IT + BDD) | `./mvnw -DskipITs=false verify` |
+| Nur Unit | `./mvnw -q test` |
+| Nur Service-BDD | `./mvnw -DskipITs=false verify -Dit.test=ServiceBddIT` |
+| Nur UI-BDD | `./mvnw -DskipITs=false verify -Dit.test=UiBddIT` |
+| Package (JVM) | `./mvnw -DskipTests package` |
+| Native-Build | `./mvnw -Pnative package` |
+
+## Architektur (Kurzfassung)
+
+Hexagonal (Port & Adapter) pro Bounded Context:
+
+```
+ch.grudligstrasse.mda.<bc>
+├── domain/                   # DDD: Aggregates, VOs, Events — 0 Framework-Imports
+├── application/
+│   ├── port/in/              # Use-Case-Interfaces (Command/Query)
+│   ├── port/out/             # Repository-/Gateway-Interfaces
+│   └── service/              # @ApplicationScoped @Transactional Services
+├── adapter/
+│   ├── in/rest/              # JAX-RS, DTOs, Mapper
+│   └── out/persistence/      # Panache-Entities, Repository-Impl, Mapper
+└── config/                   # CDI-Producer
+```
+
+Regeln werden durch ArchUnit-Test `ArchitectureTest` erzwungen. **Nicht umgehen.**
+
+## Konventionen
+
+- **IDs** sind getypte Value Objects (`ContactId`, nicht `UUID`).
+- **Value Objects** sind Java `record` mit Validierung im Compact Constructor.
+- **Domain Events** werden im Aggregate gesammelt; Services rufen `pullEvents()` und publishen über den `DomainEventPublisher`-Port.
+- **Fehler**: `DomainException`-Subklassen → zentrale `ExceptionMapper` → RFC 7807 Problem+JSON.
+- **Transaktionen**: `@Transactional` nur in `application.service`.
+
+## Test-Strategie
+
+Pyramide (absteigende Anzahl): Unit → Integration → BDD-Service → BDD-UI. Konkrete Zahlen stehen in `docs/architecture/testing.md`. Cucumber-Tags:
+
+- `@service` — Service-BDD (REST-Assured).
+- `@ui` — UI-BDD (Playwright headless; Fallback REST via `MDA_UI_MODE=rest`).
+- `@wip` — vom CI ausgeschlossen.
+
+## Modell-Quelle
+
+PlantUML-Klassendiagramme liegen in `specs/model/`. Bei Änderung: Skill `mda-plantuml-generator` ausführen — generiert Domain + Adapter + Tests + Docs neu.
+
+## Metamodell-/Spec-Verweise
+
+- Architekturleitfaden: `specs/MDA-Spezifikation.md`
+- Stack-Entscheidungen: `specs/MDA-Quarkus-Stack.md`
+- arc42 der Applikation: `docs/architecture/arc42.md`
+- ADRs: `docs/architecture/adr/`
+
+## Bekannte Einschränkungen
+
+- UI-BDD nutzt standardmässig REST-Proxy, solange kein Angular-Renderer (Spec Kap. 10) implementiert ist.
+- Multi-Tenancy per RLS (Spec Kap. 5.4) ist in Flyway vorgesehen, aber ohne Keycloak-Token nicht scharf gestellt — Dev-Profil nutzt fixe `tenant_id`.

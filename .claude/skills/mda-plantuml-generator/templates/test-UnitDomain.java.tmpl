@@ -1,0 +1,30 @@
+// Template: src/test/java/{{pkg_path}}/contact/domain/{{Aggregate}}Test.java
+package {{PackageBase}}.{{bc}}.domain;
+
+import {{PackageBase}}.{{bc}}.domain.event.DomainEvent;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class {{Aggregate}}Test {
+    private static final UUID TENANT = UUID.randomUUID();
+
+    @Test
+    void register_happyPath_emitsEvent() {
+        {{Aggregate}} a = {{Aggregate}}.register(TENANT /* , … */);
+        assertNotNull(a.id());
+        List<DomainEvent> events = a.pullEvents();
+        assertEquals(1, events.size());
+        assertTrue(a.pendingEvents().isEmpty());
+    }
+
+    @Test
+    void register_rejects_invalidInput() {
+        assertThrows(IllegalArgumentException.class, () -> {{Aggregate}}.register(TENANT /*, invalid…*/));
+    }
+
+    // Pro Invariante + pro Zustandsübergang mindestens ein Test.
+}

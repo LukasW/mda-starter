@@ -1,0 +1,26 @@
+// Template: application/service/{{Aggregate}}RuleEvaluationService.java
+// Wird in jedem Write-UseCase von {{Aggregate}}ApplicationService VOR persist aufgerufen.
+package {{PackageBase}}.{{bc}}.application.service;
+
+import {{PackageBase}}.{{bc}}.domain.rules.EvaluationResult;
+import {{PackageBase}}.{{bc}}.domain.rules.Rule;
+import {{PackageBase}}.{{bc}}.domain.rules.RuleContext;
+import {{PackageBase}}.{{bc}}.domain.rules.RuleInterpreter;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+
+import java.util.List;
+import java.util.Map;
+
+@ApplicationScoped
+public class {{Aggregate}}RuleEvaluationService {
+
+    private static final RuleInterpreter INTERPRETER = new RuleInterpreter();
+
+    @Inject RuleRegistry registry;
+
+    public EvaluationResult evaluate(Map<String, Object> fields) {
+        List<Rule> rules = registry.rulesFor("{{Aggregate}}");
+        return INTERPRETER.evaluate(rules, new RuleContext("{{Aggregate}}", fields));
+    }
+}

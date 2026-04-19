@@ -1,0 +1,27 @@
+// Template: adapter/in/rest/RulesResource.java
+// Publiziert das kompakte AST an Clients (Renderer der MDA-Plattform).
+package {{PackageBase}}.{{bc}}.adapter.in.rest;
+
+import {{PackageBase}}.{{bc}}.application.service.RuleRegistry;
+import {{PackageBase}}.{{bc}}.domain.rules.Rule;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+
+import java.util.List;
+
+@Path("/api/v1/metadata/rules")
+@Produces(MediaType.APPLICATION_JSON)
+public class RulesResource {
+
+    @Inject RuleRegistry registry;
+
+    @GET
+    @Path("/{entity}")
+    public List<Rule> rulesFor(@PathParam("entity") String entity) {
+        return registry.rulesFor(entity);
+    }
+}

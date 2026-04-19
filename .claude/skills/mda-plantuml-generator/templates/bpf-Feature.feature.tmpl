@@ -1,0 +1,18 @@
+# Template: src/test/resources/features/process/{{process}}.feature
+# language: de
+@process
+Funktionalität: {{Process}} Zustandsautomat
+
+  Szenario: Happy Path Lead → Qualified → Opportunity → Won
+    Angenommen ein neuer {{Aggregate}} in Stage "Lead"
+    Wenn der Trigger "qualify" ausgelöst wird
+    Dann ist die aktuelle Stage "Qualified"
+    Wenn der Trigger "promote" ausgelöst wird
+    Dann ist die aktuelle Stage "Opportunity"
+    Wenn der Trigger "close" ausgelöst wird
+    Dann ist die aktuelle Stage "Won"
+
+  Szenario: Unerlaubter Trigger wird abgewiesen
+    Angenommen ein neuer {{Aggregate}} in Stage "Lead"
+    Wenn der Trigger "close" ausgelöst wird
+    Dann wird die Anfrage mit HTTP 422 und Code "MDA-BPF-001" abgewiesen

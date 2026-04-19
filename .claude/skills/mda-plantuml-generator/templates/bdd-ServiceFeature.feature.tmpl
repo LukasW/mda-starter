@@ -1,0 +1,17 @@
+# Template: src/test/resources/features/service/{{aggregate_snake}}.feature
+# language: de
+@service
+Funktionalität: {{Aggregate}} verwalten (Service-BDD)
+
+  Hintergrund:
+    Angenommen ein leerer {{Aggregate}}-Store
+
+  Szenario: Neuer {{Aggregate}} wird erfolgreich registriert
+    Wenn ein {{Aggregate}} mit Name "Alice Example" und Email "alice@example.ch" registriert wird
+    Dann ist der Status "ACTIVE"
+    Und ein Domain-Event "{{Aggregate}}Registered" wurde ausgelöst
+
+  Szenario: Doppelte Email pro Tenant ist unzulässig
+    Angenommen ein {{Aggregate}} mit Email "dup@example.ch" existiert
+    Wenn ein weiterer {{Aggregate}} mit Email "dup@example.ch" registriert wird
+    Dann wird die Anfrage mit HTTP 409 und Code "MDA-CON-001" abgewiesen

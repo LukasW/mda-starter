@@ -1,0 +1,34 @@
+# Test-Strategie und Pyramide
+
+Gemessen am letzten Generator-Lauf:
+
+| Ebene | Anzahl | Ordner |
+|---|---|---|
+| Unit | {{unit_count}} | `src/test/java/**/*Test.java` (exkl. adapter/bdd) |
+| Integration | {{integration_count}} | `src/test/java/**/adapter/.../*Test.java` mit `@QuarkusTest` |
+| BDD-Service | {{bdd_service_count}} | `src/test/resources/features/service/*.feature` |
+| BDD-UI | {{bdd_ui_count}} | `src/test/resources/features/ui/*.feature` |
+
+**Regel (abnehmend):** `unit ≥ 2·integration ≥ 4·bdd_service ≥ 4·bdd_ui`.
+
+## Ausführen
+
+```bash
+./mvnw -DskipITs=false verify            # alles
+./mvnw test                              # nur Unit + @QuarkusTest (Surefire)
+./mvnw verify -Dit.test=ServiceBddIT     # nur Service-BDD
+./mvnw verify -Dit.test=UiBddIT          # nur UI-BDD
+```
+
+## UI-Mode
+
+System-Property `MDA_UI_MODE` schaltet zwischen echtem Browser und REST-Proxy:
+
+```bash
+./mvnw verify -Dit.test=UiBddIT -DMDA_UI_MODE=playwright
+./mvnw verify -Dit.test=UiBddIT -DMDA_UI_MODE=rest        # CI-Fallback
+```
+
+## Automatische Messung
+
+`scripts/count-tests.sh` aktualisiert die obigen Zahlen.

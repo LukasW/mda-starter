@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mda.example.ch/schema/rules.v1.json",
+  "title": "MDA Business Rules DSL v1",
+  "type": "object",
+  "required": ["version", "entity", "rules"],
+  "properties": {
+    "version": { "type": "string" },
+    "entity":  { "type": "string" },
+    "rules":   { "type": "array", "items": { "$ref": "#/$defs/rule" } }
+  },
+  "$defs": {
+    "rule": {
+      "type": "object",
+      "required": ["id", "when", "actions"],
+      "properties": {
+        "id":      { "type": "string" },
+        "form":    { "type": "string" },
+        "when":    { "$ref": "#/$defs/expr" },
+        "actions": { "type": "array", "items": { "$ref": "#/$defs/action" } }
+      }
+    },
+    "expr": {
+      "oneOf": [
+        { "type": "object", "required": ["const"] },
+        { "type": "object", "required": ["ref"],   "properties": { "ref": { "type": "string" } } },
+        { "type": "object", "required": ["op"],
+          "properties": { "op": { "enum": ["eq","neq","gt","gte","lt","lte","in","notIn","isNull","isNotNull","and","or","not","between","contains","startsWith","endsWith"] } } }
+      ]
+    },
+    "action": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": { "enum": ["setRequired","setVisible","setReadOnly","setValue","showError","showRecommendation"] },
+        "field": { "type": "string" },
+        "level": { "enum": ["Required","Recommended","Optional"] },
+        "messageKey": { "type": "string" }
+      }
+    }
+  }
+}

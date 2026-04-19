@@ -1,0 +1,38 @@
+version: "1.0"
+entity: "Contact"
+rules:
+  - id: "RequireEmailForActive"
+    form: "MainForm"
+    when:
+      op: "eq"
+      left: { ref: "status" }
+      right: { const: "ACTIVE" }
+    actions:
+      - type: "setRequired"
+        field: "email"
+        level: "Required"
+      - type: "showError"
+        field: "email"
+        when:
+          op: "isNull"
+          arg: { ref: "email" }
+        messageKey: "contact.email.requiredForActive"
+
+  - id: "PreferredLanguageDefault"
+    form: "QuickCreate"
+    when: { const: true }
+    actions:
+      - type: "setValue"
+        field: "preferredLanguage"
+        value: { const: "de-CH" }
+
+  - id: "HideBirthDateForMinors"
+    form: "MainForm"
+    when:
+      op: "lt"
+      left: { ref: "age" }
+      right: { const: 18 }
+    actions:
+      - type: "setVisible"
+        field: "birthDate"
+        value: { const: false }

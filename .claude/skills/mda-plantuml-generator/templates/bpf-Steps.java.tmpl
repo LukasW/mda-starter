@@ -1,0 +1,38 @@
+// Template: src/test/java/{{pkg_path}}/bdd/process/{{Process}}Steps.java
+package {{PackageBase}}.bdd.process;
+
+import io.cucumber.java.de.Angenommen;
+import io.cucumber.java.de.Dann;
+import io.cucumber.java.de.Wenn;
+import io.quarkus.test.junit.QuarkusTest;
+import io.restassured.response.Response;
+
+import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+@QuarkusTest
+public class {{Process}}Steps {
+
+    private String aggregateId;
+    private Response lastResponse;
+
+    @Angenommen("^ein neuer {{Aggregate}} in Stage \"([^\"]+)\"$")
+    public void einNeuerAggregateInStage(String stage) { /* REST: create + ensure stage */ }
+
+    @Wenn("^der Trigger \"([^\"]+)\" ausgelöst wird$")
+    public void triggerAusloesen(String trigger) {
+        lastResponse = given().post("/api/v1/{{bc_plural}}/" + aggregateId + "/process/{{process}}/trigger/" + trigger);
+    }
+
+    @Dann("^ist die aktuelle Stage \"([^\"]+)\"$")
+    public void aktuelleStage(String expected) {
+        assertEquals(200, lastResponse.statusCode());
+        assertEquals(expected, lastResponse.jsonPath().getString("currentStage"));
+    }
+
+    @Dann("^wird die Anfrage mit HTTP (\\d+) und Code \"([^\"]+)\" abgewiesen$")
+    public void abgewiesen(int status, String code) {
+        assertEquals(status, lastResponse.statusCode());
+        assertEquals(code, lastResponse.jsonPath().getString("code"));
+    }
+}

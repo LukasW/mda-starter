@@ -1,0 +1,12 @@
+# Template: src/test/resources/features/ui/{{aggregate_snake}}-ui.feature
+# language: de
+# Hinweis: UI-Tag; je nach MDA_UI_MODE (playwright|rest) werden die Steps unterschiedlich implementiert.
+@ui
+Funktionalität: {{Aggregate}} UI-Flow (Golden Path)
+
+  Szenario: Neuer {{Aggregate}} über die UI registrieren
+    Angenommen ich bin auf der "{{Aggregate}}"-Übersichtsseite
+    Wenn ich im Formular "Name" "Alice" und "Email" "alice-ui@example.ch" eingebe
+    Und ich auf "Speichern" klicke
+    Dann erscheint der {{Aggregate}} "Alice" in der Liste
+    Und der Status ist "ACTIVE"

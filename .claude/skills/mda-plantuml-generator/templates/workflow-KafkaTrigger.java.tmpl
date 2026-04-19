@@ -1,0 +1,20 @@
+// Template: workflow/adapter/in/kafka/{{TopicClass}}Consumer.java
+// SmallRye Reactive Messaging. Nur generieren, wenn Kafka aktiviert + Mapping vorhanden.
+package {{PackageBase}}.workflow.adapter.in.kafka;
+
+import jakarta.enterprise.context.ApplicationScoped;
+import org.eclipse.microprofile.reactive.messaging.Incoming;
+import org.jboss.logging.Logger;
+
+@ApplicationScoped
+public class {{TopicClass}}Consumer {
+
+    private static final Logger LOG = Logger.getLogger({{TopicClass}}Consumer.class);
+
+    @Incoming("{{topic}}")
+    public void consume(String rawPayload) {
+        // parsePayload → correlate message mit workflowId {{workflowId}}
+        // engine.getRuntimeService().correlateMessage("{{messageName}}", businessKey, variables);
+        LOG.debugf("Received on {{topic}}");
+    }
+}

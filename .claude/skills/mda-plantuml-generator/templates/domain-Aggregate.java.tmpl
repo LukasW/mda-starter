@@ -1,0 +1,60 @@
+// Template: domain/{{Aggregate}}.java
+// Platzhalter: {{PackageBase}}, {{Aggregate}}, {{AggregateId}}, {{lowerFirst}}, {{MaxNameLen}}
+// Harte Regel: keine Framework-Imports, nur java.*
+package {{PackageBase}}.{{bc}}.domain;
+
+import {{PackageBase}}.{{bc}}.domain.event.DomainEvent;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+
+public class {{Aggregate}} {
+
+    private final {{AggregateId}} id;
+    private final UUID tenantId;
+    private /* state fields */;
+    private final Instant createdAt;
+    private Instant modifiedAt;
+    private long versionNumber;
+
+    private final List<DomainEvent> pendingEvents = new ArrayList<>();
+
+    private {{Aggregate}}(/* all fields */) { /* assignments */ }
+
+    public static {{Aggregate}} register(/* params */) {
+        // 1) Invarianten prüfen (guardXxx)
+        // 2) ID generieren
+        // 3) Event an pendingEvents anfügen (XxxRegistered)
+        // 4) Instanz zurückgeben
+        throw new UnsupportedOperationException("generate");
+    }
+
+    /** Rehydrate aus Persistenz; KEIN Event. */
+    public static {{Aggregate}} rehydrate(/* all fields incl. state */) {
+        throw new UnsupportedOperationException("generate");
+    }
+
+    public List<DomainEvent> pullEvents() {
+        List<DomainEvent> copy = List.copyOf(pendingEvents);
+        pendingEvents.clear();
+        return copy;
+    }
+
+    public List<DomainEvent> pendingEvents() {
+        return Collections.unmodifiableList(pendingEvents);
+    }
+
+    // Zustandsübergänge: deactivate(), activate(), rename(...) — je nach Modell
+    // Jede Methode validiert, ändert Zustand, ruft touch(), fügt Event hinzu.
+
+    private void touch() {
+        modifiedAt = Instant.now();
+        versionNumber++;
+    }
+
+    // Getter nur lesend, keine Setter.
+}

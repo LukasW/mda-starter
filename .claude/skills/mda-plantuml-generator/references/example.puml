@@ -1,0 +1,53 @@
+@startuml
+title MDA Contact Bounded Context
+
+package "contact" {
+  class Contact <<aggregate>> {
+    ' invariant: email ist eindeutig pro tenant
+    ' invariant: aktive Kontakte haben eine email
+    - id : ContactId
+    - tenantId : UUID
+    - fullName : String
+    - email : Email
+    - status : ContactStatus
+    - createdAt : DateTime
+    - modifiedAt : DateTime
+    - versionNumber : long
+    + register(tenantId : UUID, fullName : String, email : Email) : ContactId
+    + deactivate()
+    + activate()
+    + rename(fullName : String)
+  }
+
+  class ContactId <<value object>> {
+    - value : UUID
+  }
+
+  class Email <<value object>> {
+    - value : String
+  }
+
+  enum ContactStatus {
+    ACTIVE
+    INACTIVE
+  }
+
+  class ContactRegistered <<domain event>> {
+    + contactId : ContactId
+    + tenantId : UUID
+    + occurredAt : Instant
+  }
+
+  class ContactDeactivated <<domain event>> {
+    + contactId : ContactId
+    + occurredAt : Instant
+  }
+
+  Contact o-- ContactId
+  Contact *-- Email
+  Contact *-- ContactStatus
+  Contact ..> ContactRegistered : emits
+  Contact ..> ContactDeactivated : emits
+}
+
+@enduml

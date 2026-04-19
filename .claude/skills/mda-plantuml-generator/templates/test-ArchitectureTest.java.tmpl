@@ -1,0 +1,65 @@
+// Template: src/test/java/{{pkg_path}}/architecture/ArchitectureTest.java
+package {{PackageBase}}.architecture;
+
+import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
+import com.tngtech.archunit.core.domain.JavaClasses;
+import org.junit.jupiter.api.Test;
+
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
+
+class ArchitectureTest {
+
+    private static final String ROOT = "{{PackageBase}}";
+
+    private static JavaClasses classes() {
+        return new ClassFileImporter()
+                .withImportOption(new ImportOption.DoNotIncludeTests())
+                .importPackages(ROOT);
+    }
+
+    @Test
+    void domain_mustNotDependOnFrameworks() {
+        noClasses().that().resideInAPackage("..{{bc}}.domain..")
+                .should().dependOnClassesThat()
+                .resideInAnyPackage("jakarta..", "io.quarkus..", "io.smallrye..",
+                        "org.hibernate..", "com.fasterxml..",
+                        "{{PackageBase}}.{{bc}}.adapter..",
+                        "{{PackageBase}}.{{bc}}.application..")
+                .check(classes());
+    }
+
+    @Test
+    void applicationPorts_mustNotDependOnFrameworks() {
+        noClasses().that().resideInAPackage("..{{bc}}.application.port..")
+                .should().dependOnClassesThat()
+                .resideInAnyPackage("jakarta..", "io.quarkus..", "io.smallrye..",
+                        "{{PackageBase}}.{{bc}}.adapter..")
+                .check(classes());
+    }
+
+    @Test
+    void adapterIn_mustNotDependOn_adapterOut() {
+        noClasses().that().resideInAPackage("..{{bc}}.adapter.in..")
+                .should().dependOnClassesThat()
+                .resideInAPackage("..{{bc}}.adapter.out..")
+                .check(classes());
+    }
+
+    @Test
+    void jaxrs_onlyIn_adapterIn_rest_or_shared_problem() {
+        noClasses().that().resideOutsideOfPackages(
+                        "..{{bc}}.adapter.in.rest..", "..shared.problem..")
+                .should().dependOnClassesThat()
+                .resideInAPackage("jakarta.ws.rs..")
+                .check(classes());
+    }
+
+    @Test
+    void jpa_onlyIn_adapterOut_persistence() {
+        noClasses().that().resideOutsideOfPackages("..{{bc}}.adapter.out.persistence..")
+                .should().dependOnClassesThat()
+                .resideInAPackage("jakarta.persistence..")
+                .check(classes());
+    }
+}

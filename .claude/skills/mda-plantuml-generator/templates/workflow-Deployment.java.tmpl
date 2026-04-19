@@ -1,0 +1,33 @@
+// Template: workflow/config/BpmnAutoDeployment.java
+// Genaue API-Signaturen via context7 gegen die gewählte Camunda-Quarkus-Extension verifizieren.
+package {{PackageBase}}.workflow.config;
+
+import io.quarkus.runtime.StartupEvent;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.inject.Inject;
+import org.jboss.logging.Logger;
+
+import java.io.InputStream;
+import java.util.List;
+
+@ApplicationScoped
+public class BpmnAutoDeployment {
+
+    private static final Logger LOG = Logger.getLogger(BpmnAutoDeployment.class);
+
+    // @Inject ProcessEngine engine;   // konkrete Klasse aus der Extension
+
+    void onStart(@Observes StartupEvent ev) {
+        List<String> bpmns = List.of(/* aus Resources-Scan: "bpmn/case-approval.bpmn", ... */);
+        for (String path : bpmns) {
+            try (InputStream in = getClass().getClassLoader().getResourceAsStream(path)) {
+                if (in == null) { continue; }
+                // engine.getRepositoryService().createDeployment().addInputStream(path, in).deploy();
+                LOG.infof("Deployed BPMN: %s", path);
+            } catch (Exception e) {
+                LOG.errorf(e, "Failed to deploy BPMN %s", path);
+            }
+        }
+    }
+}

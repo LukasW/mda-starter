@@ -1,0 +1,30 @@
+-- Template: src/main/resources/db/migration/V2__bpf.sql
+CREATE TABLE IF NOT EXISTS {{default_schema}}.bpf_instance (
+    id              UUID         NOT NULL,
+    tenant_id       UUID         NOT NULL,
+    process_name    VARCHAR(64)  NOT NULL,
+    aggregate_id    UUID         NOT NULL,
+    aggregate_type  VARCHAR(64)  NOT NULL,
+    current_stage   VARCHAR(64)  NOT NULL,
+    started_at      TIMESTAMP    NOT NULL,
+    completed_at    TIMESTAMP    NULL,
+    version_number  BIGINT       NOT NULL DEFAULT 0,
+    CONSTRAINT pk_bpf_instance PRIMARY KEY (id),
+    CONSTRAINT uq_bpf_instance_active UNIQUE (tenant_id, process_name, aggregate_id)
+);
+
+CREATE TABLE IF NOT EXISTS {{default_schema}}.bpf_transition_log (
+    id           UUID         NOT NULL,
+    instance_id  UUID         NOT NULL,
+    from_stage   VARCHAR(64)  NULL,
+    to_stage     VARCHAR(64)  NOT NULL,
+    trigger_name VARCHAR(64)  NOT NULL,
+    guard_result VARCHAR(16)  NULL,
+    occurred_at  TIMESTAMP    NOT NULL,
+    actor        VARCHAR(128) NOT NULL,
+    CONSTRAINT pk_bpf_transition PRIMARY KEY (id),
+    CONSTRAINT fk_bpf_transition_instance FOREIGN KEY (instance_id)
+        REFERENCES {{default_schema}}.bpf_instance(id)
+);
+
+CREATE INDEX IF NOT EXISTS ix_bpf_tx_instance ON {{default_schema}}.bpf_transition_log(instance_id);

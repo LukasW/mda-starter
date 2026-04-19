@@ -1,0 +1,40 @@
+// Template: domain/rules/{Expr,Action,Rule}.java  — pure Java, keine Framework-Imports.
+package {{PackageBase}}.{{bc}}.domain.rules;
+
+import java.util.List;
+import java.util.Map;
+
+public sealed interface Expr permits Expr.Const, Expr.Ref, Expr.Unary, Expr.Binary, Expr.Nary {
+    record Const(Object value) implements Expr {}
+    record Ref(String field) implements Expr {}
+    record Unary(String op, Expr arg) implements Expr {}
+    record Binary(String op, Expr left, Expr right) implements Expr {}
+    record Nary(String op, List<Expr> args) implements Expr {}
+}
+
+public sealed interface Action
+        permits Action.SetRequired, Action.SetVisible, Action.SetReadOnly,
+                Action.SetValue, Action.ShowError, Action.ShowRecommendation {
+    record SetRequired(String field, String level)                          implements Action {}
+    record SetVisible(String field, Expr value)                             implements Action {}
+    record SetReadOnly(String field, Expr value)                            implements Action {}
+    record SetValue(String field, Expr value)                               implements Action {}
+    record ShowError(String field, Expr when, String messageKey)            implements Action {}
+    record ShowRecommendation(String field, Expr when, String messageKey)   implements Action {}
+}
+
+public record Rule(String id, String form, Expr when, List<Action> actions) {}
+
+public record RuleContext(String entity, Map<String, Object> fields) {}
+
+public record EvaluationResult(
+        List<String> requiredFields,
+        List<String> hiddenFields,
+        List<String> readOnlyFields,
+        Map<String, Object> computedValues,
+        List<FieldError> errors,
+        List<Recommendation> recommendations) {
+    public record FieldError(String field, String code, String messageKey) {}
+    public record Recommendation(String field, String messageKey) {}
+    public boolean hasErrors() { return errors != null && !errors.isEmpty(); }
+}

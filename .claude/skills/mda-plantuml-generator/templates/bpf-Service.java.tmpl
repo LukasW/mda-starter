@@ -1,0 +1,29 @@
+// Template: application/service/{{Process}}FlowService.java
+package {{PackageBase}}.{{bc}}.application.service;
+
+import {{PackageBase}}.{{bc}}.application.port.in.Trigger{{Process}}UseCase;
+import {{PackageBase}}.{{bc}}.application.port.out.{{Process}}InstanceRepository;
+import {{PackageBase}}.{{bc}}.domain.{{Aggregate}}Id;
+import {{PackageBase}}.{{bc}}.domain.process.{{Process}}Stage;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+
+@ApplicationScoped
+public class {{Process}}FlowService implements Trigger{{Process}}UseCase {
+
+    @Inject {{Process}}InstanceRepository instances;
+
+    @Override
+    @Transactional
+    public {{Process}}Stage execute(Trigger{{Process}}Command cmd) {
+        var instance = instances.findActiveFor(cmd.aggregateId())
+                .orElseThrow(() -> new IllegalStateException("Keine aktive Prozessinstanz."));
+        var current  = {{Process}}Stage.valueOf(instance.currentStage());
+        var next     = current.transition(cmd.trigger());
+        instance.currentStage(next.name());
+        instances.save(instance);
+        instances.appendTransitionLog(instance.id(), current.name(), next.name(), cmd.trigger(), cmd.actor());
+        return next;
+    }
+}

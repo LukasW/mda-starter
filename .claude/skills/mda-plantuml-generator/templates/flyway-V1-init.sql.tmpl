@@ -1,0 +1,15 @@
+-- Template: src/main/resources/db/migration/V1__init.sql
+-- Platzhalter: {{default_schema}}, {{table_name}}, und je nach Aggregate Spalten.
+CREATE SCHEMA IF NOT EXISTS {{default_schema}};
+
+CREATE TABLE IF NOT EXISTS {{default_schema}}.{{table_name}} (
+    id               UUID         NOT NULL,
+    tenant_id        UUID         NOT NULL,
+    -- ⟨hier pro Attribut eine Spalte – aus /tmp/mda-domain-model.json⟩
+    created_at       TIMESTAMP    NOT NULL,
+    modified_at      TIMESTAMP    NOT NULL,
+    version_number   BIGINT       NOT NULL DEFAULT 0,
+    CONSTRAINT pk_{{table_name}} PRIMARY KEY (id)
+);
+
+CREATE INDEX IF NOT EXISTS ix_{{table_name}}_tenant ON {{default_schema}}.{{table_name}}(tenant_id);

@@ -1,0 +1,15 @@
+@startuml
+title Contact Lifecycle (BPF)
+
+[*] --> Lead
+Lead --> Qualified        : qualify
+Qualified --> Opportunity : promote
+Opportunity --> Won       : close
+Opportunity --> Lost      : lose
+Won --> [*]
+Lost --> [*]
+
+' guard: qualify requires email != null
+' guard: close requires totalAmount >= minThreshold
+
+@enduml

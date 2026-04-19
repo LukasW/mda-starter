@@ -1,0 +1,49 @@
+// Template: src/test/java/{{pkg_path}}/{{bc}}/domain/rules/{{Aggregate}}RulesSnapshotTest.java
+// Sichert Client/Server-Äquivalenz: deterministische Evaluation pro Rule-Context.
+package {{PackageBase}}.{{bc}}.domain.rules;
+
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class {{Aggregate}}RulesSnapshotTest {
+
+    private final RuleInterpreter interpreter = new RuleInterpreter();
+
+    @Test
+    void requireEmailForActive_active_withoutEmail_producesError() {
+        Rule r = new Rule(
+                "RequireEmailForActive", "MainForm",
+                new Expr.Binary("eq", new Expr.Ref("status"), new Expr.Const("ACTIVE")),
+                List.of(
+                        new Action.SetRequired("email", "Required"),
+                        new Action.ShowError("email",
+                                new Expr.Unary("isNull", new Expr.Ref("email")),
+                                "contact.email.requiredForActive")));
+
+        EvaluationResult result = interpreter.evaluate(
+                List.of(r),
+                new RuleContext("{{Aggregate}}", Map.of("status", "ACTIVE", "email", null)));
+
+        assertTrue(result.requiredFields().contains("email"));
+        assertTrue(result.hasErrors());
+    }
+
+    @Test
+    void requireEmailForActive_inactive_noError() {
+        Rule r = new Rule(
+                "RequireEmailForActive", "MainForm",
+                new Expr.Binary("eq", new Expr.Ref("status"), new Expr.Const("ACTIVE")),
+                List.of(new Action.SetRequired("email", "Required")));
+
+        EvaluationResult result = interpreter.evaluate(
+                List.of(r),
+                new RuleContext("{{Aggregate}}", Map.of("status", "INACTIVE")));
+
+        assertFalse(result.requiredFields().contains("email"));
+        assertFalse(result.hasErrors());
+    }
+}

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Minimales BPMN-Beispiel für den Generator: Case Approval.
+  Externe Tasks: "kyc-check" und "notify".
+  User Task "Review Case".
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+                  id="Definitions_case_approval"
+                  targetNamespace="https://mda.example.ch/bpmn">
+  <bpmn:message id="Msg_CaseCreated" name="case.created.v1"/>
+  <bpmn:message id="Msg_CaseApproved" name="case.approved.v1"/>
+
+  <bpmn:process id="case-approval" name="Case Approval" isExecutable="true">
+    <bpmn:startEvent id="Start">
+      <bpmn:messageEventDefinition messageRef="Msg_CaseCreated"/>
+    </bpmn:startEvent>
+
+    <bpmn:serviceTask id="checkKyc"
+                      name="Check KYC"
+                      camunda:type="external"
+                      camunda:topic="kyc-check"/>
+
+    <bpmn:userTask id="reviewCase"
+                   name="Review Case"
+                   camunda:assignee="${approver}"
+                   camunda:dueDate="P2D"/>
+
+    <bpmn:serviceTask id="notifyApprover"
+                      name="Notify Approver"
+                      camunda:type="external"
+                      camunda:topic="notify"/>
+
+    <bpmn:endEvent id="End">
+      <bpmn:messageEventDefinition messageRef="Msg_CaseApproved"/>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="f1" sourceRef="Start"          targetRef="checkKyc"/>
+    <bpmn:sequenceFlow id="f2" sourceRef="checkKyc"       targetRef="reviewCase"/>
+    <bpmn:sequenceFlow id="f3" sourceRef="reviewCase"     targetRef="notifyApprover"/>
+    <bpmn:sequenceFlow id="f4" sourceRef="notifyApprover" targetRef="End"/>
+  </bpmn:process>
+</bpmn:definitions>

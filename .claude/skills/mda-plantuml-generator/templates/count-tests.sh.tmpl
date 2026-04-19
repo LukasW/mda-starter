@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Template: scripts/count-tests.sh
+set -euo pipefail
+UNIT=$(grep -R --include="*Test.java" -l "@Test" src/test/java 2>/dev/null \
+  | grep -v /bdd/ | grep -v /adapter/ | wc -l | tr -d ' ')
+INT=$(grep -R --include="*Test.java" -l "@QuarkusTest" src/test/java 2>/dev/null | wc -l | tr -d ' ')
+BDD_SVC=$(find src/test/resources/features/service -name '*.feature' 2>/dev/null | wc -l | tr -d ' ')
+BDD_UI=$(find src/test/resources/features/ui -name '*.feature' 2>/dev/null | wc -l | tr -d ' ')
+printf "Unit: %s\nIntegration: %s\nBDD-Service: %s\nBDD-UI: %s\n" "$UNIT" "$INT" "$BDD_SVC" "$BDD_UI"

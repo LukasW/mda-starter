@@ -1,0 +1,14 @@
+// Template: domain/{{Aggregate}}Id.java
+package {{PackageBase}}.{{bc}}.domain;
+
+import java.util.Objects;
+import java.util.UUID;
+
+public record {{Aggregate}}Id(UUID value) {
+    public {{Aggregate}}Id {
+        Objects.requireNonNull(value, "{{Aggregate}}Id.value must not be null");
+    }
+    public static {{Aggregate}}Id generate() { return new {{Aggregate}}Id(UUID.randomUUID()); }
+    public static {{Aggregate}}Id parse(String s) { return new {{Aggregate}}Id(UUID.fromString(s)); }
+    public String asString() { return value.toString(); }
+}

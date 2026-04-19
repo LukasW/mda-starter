@@ -1,0 +1,10 @@
+// Template: application/port/in/{{Verb}}{{Aggregate}}UseCase.java
+package {{PackageBase}}.{{bc}}.application.port.in;
+
+import {{PackageBase}}.{{bc}}.domain.{{Aggregate}}Id;
+
+public interface {{Verb}}{{Aggregate}}UseCase {
+    {{ReturnType}} execute({{Verb}}{{Aggregate}}Command cmd);
+
+    record {{Verb}}{{Aggregate}}Command(/* parameters as primitives / VOs — not entities */) {}
+}

@@ -1,0 +1,29 @@
+// Template: shared/problem/ProblemDetail.java (RFC 7807)
+package {{PackageBase}}.shared.problem;
+
+import java.util.List;
+
+public record ProblemDetail(String type, String title, int status, String code,
+                            String detail, String correlationId, List<FieldError> errors) {
+    public record FieldError(String field, String code, String message) {}
+    public static ProblemDetail of(String type, String title, int status, String code, String detail) {
+        return new ProblemDetail(type, title, status, code, detail, null, List.of());
+    }
+}
+
+// Template: shared/problem/DomainExceptionMapper.java
+/*
+@Provider
+public class DomainExceptionMapper implements ExceptionMapper<DomainException> {
+    public Response toResponse(DomainException e) {
+        int status = switch (e.code()) { // oder instanceof-Switch
+            case "MDA-CON-002" -> 404;
+            case "MDA-CON-001" -> 409;
+            default            -> 422;
+        };
+        return Response.status(status).type("application/problem+json")
+            .entity(ProblemDetail.of(...))
+            .build();
+    }
+}
+*/

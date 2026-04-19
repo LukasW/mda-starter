@@ -1,0 +1,55 @@
+// Template: adapter/out/persistence/{{Aggregate}}JpaEntity.java
+package {{PackageBase}}.{{bc}}.adapter.out.persistence;
+
+import jakarta.persistence.*;
+import java.time.Instant;
+import java.util.UUID;
+
+@Entity
+@Table(name = "{{table_name}}", schema = "{{default_schema}}")
+public class {{Aggregate}}JpaEntity {
+    @Id
+    @Column(name = "id", nullable = false, updatable = false)
+    public UUID id;
+
+    @Column(name = "tenant_id", nullable = false)
+    public UUID tenantId;
+
+    // ⟨weitere Spalten aus dem Domänen-Modell⟩
+
+    @Column(name = "created_at", nullable = false)
+    public Instant createdAt;
+
+    @Column(name = "modified_at", nullable = false)
+    public Instant modifiedAt;
+
+    @Version
+    @Column(name = "version_number", nullable = false)
+    public long versionNumber;
+}
+
+// Template: adapter/out/persistence/{{Aggregate}}PanacheRepository.java
+/*
+@ApplicationScoped
+public class {{Aggregate}}PanacheRepository
+        implements PanacheRepositoryBase<{{Aggregate}}JpaEntity, UUID>, {{Aggregate}}Repository {
+
+    @Override public void save({{Aggregate}} a) {
+        {{Aggregate}}JpaEntity existing = findById(a.id().value());
+        if (existing == null) {
+            {{Aggregate}}JpaEntity e = new {{Aggregate}}JpaEntity();
+            {{Aggregate}}PersistenceMapper.copyToJpa(a, e);
+            persist(e);
+        } else {
+            {{Aggregate}}PersistenceMapper.copyToJpa(a, existing);
+        }
+    }
+    @Override public Optional<{{Aggregate}}> findById({{Aggregate}}Id id) {
+        return Optional.ofNullable(findById(id.value())).map({{Aggregate}}PersistenceMapper::toDomain);
+    }
+    @Override public List<{{Aggregate}}> findByTenant(UUID t, int top, int skip) {
+        return find("tenantId", t).page(skip / Math.max(top,1), Math.max(top,1)).list()
+                .stream().map({{Aggregate}}PersistenceMapper::toDomain).toList();
+    }
+}
+*/

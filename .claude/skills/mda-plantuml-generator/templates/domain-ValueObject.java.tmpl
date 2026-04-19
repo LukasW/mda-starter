@@ -1,0 +1,11 @@
+// Template: domain/{{Name}}.java  (Value Object als record)
+package {{PackageBase}}.{{bc}}.domain;
+
+import java.util.Objects;
+
+public record {{Name}}({{type}} value) {
+    public {{Name}} {
+        Objects.requireNonNull(value, "{{Name}}.value must not be null");
+        // Invarianten hier validieren (Regex, Bereichs-Check, normalize)
+    }
+}

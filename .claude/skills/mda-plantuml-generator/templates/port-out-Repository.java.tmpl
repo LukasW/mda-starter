@@ -1,0 +1,16 @@
+// Template: application/port/out/{{Aggregate}}Repository.java
+package {{PackageBase}}.{{bc}}.application.port.out;
+
+import {{PackageBase}}.{{bc}}.domain.{{Aggregate}};
+import {{PackageBase}}.{{bc}}.domain.{{Aggregate}}Id;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+public interface {{Aggregate}}Repository {
+    void save({{Aggregate}} aggregate);
+    Optional<{{Aggregate}}> findById({{Aggregate}}Id id);
+    List<{{Aggregate}}> findByTenant(UUID tenantId, int top, int skip);
+    // Weitere query methods aus dem Domänen-Modell ableiten
+}

@@ -1,0 +1,21 @@
+# Template: src/test/resources/features/rules/{{aggregate}}-rules.feature
+# language: de
+@rules
+Funktionalität: Business Rules für {{Aggregate}}
+
+  Szenariogrundriss: RequireEmailForActive
+    Angenommen ein {{Aggregate}}-Zustand mit status "<status>" und email "<email>"
+    Wenn die Rule-Evaluation läuft
+    Dann ist das Feld "email" required = <emailRequired>
+    Und ein Error auf "email" existiert = <hasError>
+
+    Beispiele:
+      | status    | email              | emailRequired | hasError |
+      | ACTIVE    | alice@example.ch   | true          | false    |
+      | ACTIVE    |                    | true          | true     |
+      | INACTIVE  |                    | false         | false    |
+
+  Szenario: PreferredLanguageDefault für QuickCreate
+    Angenommen ein {{Aggregate}}-Zustand ohne preferredLanguage
+    Wenn die Rule-Evaluation für Form "QuickCreate" läuft
+    Dann ist der computed Value von "preferredLanguage" "de-CH"

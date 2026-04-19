@@ -1,0 +1,19 @@
+// Template: domain/event/DomainEvent.java  (sealed root)
+package {{PackageBase}}.{{bc}}.domain.event;
+
+import java.time.Instant;
+import java.util.UUID;
+
+public sealed interface DomainEvent permits /* , erzeugte Event-Klassen */ {
+    UUID eventId();
+    Instant occurredAt();
+}
+
+// Template: domain/event/{{Aggregate}}Registered.java
+// package ... .domain.event;
+// public record {{Aggregate}}Registered(UUID eventId, Instant occurredAt,
+//         {{Aggregate}}Id id, UUID tenantId) implements DomainEvent {
+//     public static {{Aggregate}}Registered of({{Aggregate}}Id id, UUID tenantId) {
+//         return new {{Aggregate}}Registered(UUID.randomUUID(), Instant.now(), id, tenantId);
+//     }
+// }

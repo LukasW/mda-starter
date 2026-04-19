@@ -1,0 +1,15 @@
+// Template: src/test/java/{{pkg_path}}/bdd/RulesBddIT.java
+package {{PackageBase}}.bdd;
+
+import io.cucumber.junit.platform.engine.Constants;
+import org.junit.platform.suite.api.ConfigurationParameter;
+import org.junit.platform.suite.api.IncludeEngines;
+import org.junit.platform.suite.api.SelectClasspathResource;
+import org.junit.platform.suite.api.Suite;
+
+@Suite
+@IncludeEngines("cucumber")
+@SelectClasspathResource("features/rules")
+@ConfigurationParameter(key = Constants.GLUE_PROPERTY_NAME, value = "{{PackageBase}}.bdd.rules")
+@ConfigurationParameter(key = Constants.FILTER_TAGS_PROPERTY_NAME, value = "@rules and not @wip")
+public class RulesBddIT {}

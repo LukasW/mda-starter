@@ -1,0 +1,25 @@
+// Template: workflow/adapter/in/camunda/{{JobName}}Worker.java
+// External-Task-Worker: API über die Camunda-Quarkus-Extension; Signaturen via context7 verifizieren.
+package {{PackageBase}}.workflow.adapter.in.camunda;
+
+import jakarta.enterprise.context.ApplicationScoped;
+import org.jboss.logging.Logger;
+
+@ApplicationScoped
+public class {{JobName}}Worker {
+
+    private static final Logger LOG = Logger.getLogger({{JobName}}Worker.class);
+
+    // @ExternalTaskSubscription(topicName = "{{topic}}", maxTasks = 10, lockDuration = 20_000L)
+    public void handle(/* ExternalTask task, ExternalTaskService svc */) {
+        try {
+            // 1. Variables lesen
+            // 2. Aufruf an Application Service im entsprechenden BC
+            // 3. svc.complete(task, resultVariables)
+            LOG.infof("Handled topic {{topic}}");
+        } catch (Exception e) {
+            // svc.handleFailure(task, e.getMessage(), stack, retries, retryTimeout)
+            LOG.errorf(e, "Handler {{JobName}}Worker failed");
+        }
+    }
+}

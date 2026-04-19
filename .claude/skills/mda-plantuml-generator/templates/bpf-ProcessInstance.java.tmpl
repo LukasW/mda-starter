@@ -1,0 +1,44 @@
+// Template: adapter/out/persistence/{{Process}}InstanceJpaEntity.java + Repository
+package {{PackageBase}}.{{bc}}.adapter.out.persistence;
+
+import jakarta.persistence.*;
+import java.time.Instant;
+import java.util.UUID;
+
+@Entity
+@Table(name = "bpf_instance", schema = "{{default_schema}}")
+public class {{Process}}InstanceJpaEntity {
+    @Id
+    @Column(name = "id", nullable = false, updatable = false)
+    public UUID id;
+
+    @Column(name = "tenant_id", nullable = false)
+    public UUID tenantId;
+
+    @Column(name = "process_name", nullable = false, length = 64)
+    public String processName;
+
+    @Column(name = "aggregate_id", nullable = false)
+    public UUID aggregateId;
+
+    @Column(name = "aggregate_type", nullable = false, length = 64)
+    public String aggregateType;
+
+    @Column(name = "current_stage", nullable = false, length = 64)
+    public String currentStage;
+
+    @Column(name = "started_at", nullable = false)
+    public Instant startedAt;
+
+    @Column(name = "completed_at")
+    public Instant completedAt;
+
+    @Version
+    @Column(name = "version_number", nullable = false)
+    public long versionNumber;
+}
+
+/*
+   Template: bpf_transition_log-Entity + Panache-Repository.
+   Repository implementiert den Out-Port {{Process}}InstanceRepository aus application.port.out.
+*/

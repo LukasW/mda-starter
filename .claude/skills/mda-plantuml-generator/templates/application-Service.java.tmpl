@@ -1,0 +1,36 @@
+// Template: application/service/{{Aggregate}}ApplicationService.java
+package {{PackageBase}}.{{bc}}.application.service;
+
+import {{PackageBase}}.{{bc}}.application.port.in.*;
+import {{PackageBase}}.{{bc}}.application.port.out.*;
+import {{PackageBase}}.{{bc}}.domain.{{Aggregate}};
+import {{PackageBase}}.{{bc}}.domain.{{Aggregate}}Id;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+
+@ApplicationScoped
+public class {{Aggregate}}ApplicationService
+        implements Register{{Aggregate}}UseCase, Get{{Aggregate}}ByIdQuery /* ...weitere Ports */ {
+
+    private final {{Aggregate}}Repository repository;
+    private final DomainEventPublisher publisher;
+
+    @Inject
+    public {{Aggregate}}ApplicationService({{Aggregate}}Repository repository, DomainEventPublisher publisher) {
+        this.repository = repository;
+        this.publisher = publisher;
+    }
+
+    @Override
+    @Transactional
+    public {{Aggregate}}Id execute(Register{{Aggregate}}Command cmd) {
+        // Preconditions / Business-Invarianten via Domain-Factories
+        {{Aggregate}} aggregate = {{Aggregate}}.register(/* params aus cmd */);
+        repository.save(aggregate);
+        publisher.publish(aggregate.pullEvents());
+        return aggregate.id();
+    }
+
+    // Weitere Use-Case-Methoden analog — @Transactional, Repository + Publisher.
+}

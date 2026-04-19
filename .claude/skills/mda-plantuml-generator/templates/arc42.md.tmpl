@@ -1,0 +1,142 @@
+# arc42 — {{project_name}}
+
+Kompakte arc42-Instanz. C4-Diagramme sind als PlantUML eingebettet und durch ein normales PlantUML-Rendering (z. B. IntelliJ, VS Code PlantUML Plugin, kroki.io) darstellbar.
+
+## 1. Einführung und Ziele
+
+Modellgetriebene Fach-Applikation auf Quarkus. Ziel: aus deklarativen Modellen (PlantUML + MDA-Spec) eine konsistente, wartbare CRUD-/Prozess-Plattform ableiten.
+
+**Qualitätsziele**
+
+1. Korrektheit (keine Geschäftsregel im Adapter).
+2. Testbarkeit (Testpyramide, ArchUnit, BDD).
+3. Portabilität on-prem ↔ Cloud.
+
+## 2. Randbedingungen
+
+- JVM 21, Quarkus LTS.
+- PostgreSQL 16 als Primärablage, H2 nur in Dev/Test.
+- Keycloak (OIDC) für Auth.
+- Schweizer Datenresidenz (VVG/FINMA).
+
+## 3. Kontextabgrenzung
+
+```plantuml
+@startuml C4-L1
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+Person(user, "Fachanwenderin")
+System(mda, "{{project_name}}", "Modellgetriebene Fach-App")
+System_Ext(kc, "Keycloak", "OIDC Provider")
+System_Ext(db, "PostgreSQL", "Primärablage")
+System_Ext(kafka, "Kafka", "Event Bus")
+Rel(user, mda, "HTTPS/REST, OIDC-PKCE")
+Rel(mda, kc, "OIDC")
+Rel(mda, db, "JDBC, TLS")
+Rel(mda, kafka, "Kafka (Avro)")
+@enduml
+```
+
+## 4. Lösungsstrategie
+
+- Hexagonale Architektur, DDD-taktisches Design.
+- Transactional Outbox für Events.
+- RLS + Tenant-Discriminator für Multi-Tenancy (Spec 5.4).
+
+## 5. Bausteinsicht
+
+### 5.1 C4-L2 Container
+
+```plantuml
+@startuml C4-L2
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+System_Boundary(mda, "{{project_name}}") {
+  Container(api, "Core API", "Quarkus (JVM 21)", "REST + OpenAPI")
+  ContainerDb(db, "PostgreSQL", "16", "Entity Store, Audit")
+}
+Container_Ext(kc, "Keycloak", "OIDC")
+Rel(api, kc, "Token Introspection")
+Rel(api, db, "JDBC")
+@enduml
+```
+
+### 5.2 C4-L3 Component (Bounded Context {{bc_name}})
+
+```plantuml
+@startuml C4-L3
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+Container_Boundary(api, "Core API") {
+  Component(rest, "{{bc_name}}Resource", "JAX-RS", "HTTP-Adapter")
+  Component(svc, "{{bc_name}}ApplicationService", "CDI + Transactional", "Use-Case-Orchestrierung")
+  Component(dom, "{{bc_name}} Aggregate", "Pure Java", "Invarianten & Events")
+  Component(repo, "{{bc_name}}PanacheRepository", "Panache", "Out-Port-Impl")
+  ComponentDb(db, "{{bc_name}}", "Tabelle", "Aggregatdaten")
+}
+Rel(rest, svc, "ruft UseCase")
+Rel(svc, dom, "nutzt")
+Rel(svc, repo, "ruft Out-Port")
+Rel(repo, db, "JPA/Panache")
+@enduml
+```
+
+## 6. Laufzeitsicht (Beispiel: Register{{bc_name}})
+
+```plantuml
+@startuml
+actor User
+participant "{{bc_name}}Resource" as R
+participant "{{bc_name}}ApplicationService" as S
+participant "{{bc_name}} (Aggregate)" as A
+participant "{{bc_name}}PanacheRepository" as P
+participant "DomainEventPublisher" as E
+User -> R: POST /api/v1/{{bc_path}}
+R -> S: execute(RegisterCommand)
+S -> A: register(...)
+A --> S: aggregate + pendingEvents
+S -> P: save(aggregate)
+S -> E: publish(events)
+S --> R: {{bc_name}}Id
+R --> User: 201 Created + Location
+@enduml
+```
+
+## 7. Verteilungssicht
+
+- Quarkus-JAR + OCI-Image in AKS/Switzerland-North (Prod).
+- Homelab: MicroK8s mit identischen Helm-Charts.
+
+## 8. Querschnittliche Konzepte
+
+- Auth: OIDC (Keycloak), Role-Claim via `groups`.
+- Audit: Hibernate Envers + zusätzlicher fachlicher Audit-Log.
+- Observability: OpenTelemetry → OTLP-Kollektor.
+
+## 9. Architekturentscheidungen
+
+Siehe `docs/architecture/adr/`:
+
+- ADR-0001 Hexagonal Architecture
+- ADR-0002 DDD Tactical Design
+- ADR-0003 PostgreSQL RLS Multi-Tenancy
+- ADR-0004 BDD with Cucumber
+- ADR-0005 Model-Driven Generator
+
+## 10. Qualitätsziele und SLOs
+
+Aus `specs/MDA-Quarkus-Stack.md` Kapitel 11.6:
+
+| SLO | Ziel |
+|---|---|
+| API-Verfügbarkeit | 99.9 %/Monat |
+| P95 GET | ≤ 300 ms |
+| P95 POST | ≤ 500 ms |
+
+## 11. Risiken
+
+- Abhängigkeit von Camunda 7 Community (EOL) – Abstraktion über Workflow-Bridge.
+- Eigene Regel-Engine (Wartungslast).
+
+## 12. Glossar
+
+- **Aggregate**: Konsistenzgrenze, eine Transaktion pro Aggregate.
+- **Port**: Interface in `application.port.*`.
+- **Adapter**: Implementierung / Konsument des Ports in `adapter.*`.

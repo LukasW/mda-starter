@@ -1,0 +1,98 @@
+// Template: domain/rules/RuleInterpreter.java
+// Pure Java, deterministisch, keine Framework-Imports.
+package {{PackageBase}}.{{bc}}.domain.rules;
+
+import java.util.*;
+
+public final class RuleInterpreter {
+
+    public EvaluationResult evaluate(List<Rule> rules, RuleContext ctx) {
+        List<String> required = new ArrayList<>();
+        List<String> hidden   = new ArrayList<>();
+        List<String> readOnly = new ArrayList<>();
+        Map<String, Object> computed = new LinkedHashMap<>();
+        List<EvaluationResult.FieldError> errors = new ArrayList<>();
+        List<EvaluationResult.Recommendation> recs = new ArrayList<>();
+
+        for (Rule rule : rules) {
+            if (!truthy(eval(rule.when(), ctx))) continue;
+            for (Action a : rule.actions()) {
+                switch (a) {
+                    case Action.SetRequired s     -> required.add(s.field());
+                    case Action.SetVisible  s     -> { if (!truthy(eval(s.value(), ctx))) hidden.add(s.field()); }
+                    case Action.SetReadOnly s     -> { if (truthy(eval(s.value(), ctx)))  readOnly.add(s.field()); }
+                    case Action.SetValue    s     -> computed.put(s.field(), eval(s.value(), ctx));
+                    case Action.ShowError   s     -> {
+                        if (s.when() == null || truthy(eval(s.when(), ctx))) {
+                            errors.add(new EvaluationResult.FieldError(s.field(), "MDA-RUL-001", s.messageKey()));
+                        }
+                    }
+                    case Action.ShowRecommendation s -> {
+                        if (s.when() == null || truthy(eval(s.when(), ctx))) {
+                            recs.add(new EvaluationResult.Recommendation(s.field(), s.messageKey()));
+                        }
+                    }
+                }
+            }
+        }
+        return new EvaluationResult(required, hidden, readOnly, computed, errors, recs);
+    }
+
+    private Object eval(Expr e, RuleContext ctx) {
+        return switch (e) {
+            case Expr.Const c  -> c.value();
+            case Expr.Ref r    -> ctx.fields().get(r.field());
+            case Expr.Unary u  -> unary(u.op(), eval(u.arg(), ctx));
+            case Expr.Binary b -> binary(b.op(), eval(b.left(), ctx), eval(b.right(), ctx));
+            case Expr.Nary n   -> nary(n.op(), n.args().stream().map(x -> eval(x, ctx)).toList());
+        };
+    }
+
+    private Object unary(String op, Object v) {
+        return switch (op) {
+            case "isNull"    -> v == null;
+            case "isNotNull" -> v != null;
+            case "not"       -> !truthy(v);
+            default -> throw new IllegalArgumentException("unary op: " + op);
+        };
+    }
+
+    private Object binary(String op, Object l, Object r) {
+        return switch (op) {
+            case "eq"         -> Objects.equals(l, r);
+            case "neq"        -> !Objects.equals(l, r);
+            case "gt"         -> cmp(l, r) >  0;
+            case "gte"        -> cmp(l, r) >= 0;
+            case "lt"         -> cmp(l, r) <  0;
+            case "lte"        -> cmp(l, r) <= 0;
+            case "contains"   -> String.valueOf(l).contains(String.valueOf(r));
+            case "startsWith" -> String.valueOf(l).startsWith(String.valueOf(r));
+            case "endsWith"   -> String.valueOf(l).endsWith(String.valueOf(r));
+            default -> throw new IllegalArgumentException("binary op: " + op);
+        };
+    }
+
+    private Object nary(String op, List<Object> vs) {
+        return switch (op) {
+            case "and" -> vs.stream().allMatch(this::truthy);
+            case "or"  -> vs.stream().anyMatch(this::truthy);
+            case "in"  -> vs.size() >= 2 && ((List<?>) vs.get(1)).contains(vs.get(0));
+            case "notIn" -> vs.size() >= 2 && !((List<?>) vs.get(1)).contains(vs.get(0));
+            default -> throw new IllegalArgumentException("nary op: " + op);
+        };
+    }
+
+    private boolean truthy(Object v) {
+        if (v == null) return false;
+        if (v instanceof Boolean b) return b;
+        if (v instanceof Number n)  return n.doubleValue() != 0.0;
+        if (v instanceof String s)  return !s.isEmpty();
+        return true;
+    }
+
+    @SuppressWarnings({"unchecked","rawtypes"})
+    private int cmp(Object l, Object r) {
+        if (l instanceof Comparable c && r != null) return c.compareTo(r);
+        throw new IllegalArgumentException("not comparable: " + l + " vs " + r);
+    }
+}

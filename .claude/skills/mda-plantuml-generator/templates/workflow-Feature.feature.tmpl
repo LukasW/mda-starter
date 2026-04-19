@@ -1,0 +1,11 @@
+# Template: src/test/resources/features/workflow/{{workflowId}}.feature
+# language: de
+@workflow
+Funktionalität: Workflow {{workflowName}}
+
+  Szenario: Happy Path
+    Angenommen der Workflow "{{workflowId}}" ist deployed
+    Wenn ein Start-Event "{{startEventName}}" mit businessKey "bk-1" korreliert wird
+    Dann ist die aktive Task nach KYC-Check "reviewCase"
+    Wenn die Task "reviewCase" durch "approver" abgeschlossen wird
+    Dann wird das End-Event "{{endEventName}}" publiziert

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Template: src/main/resources/bpmn/{{workflowId}}.bpmn
+  Hinweis: Die Generator-Pipeline kopiert das Roh-BPMN aus dem Input und
+  normalisiert nur targetNamespace + camunda-Namensraum. Dies hier dient als
+  Minimal-Skeleton, falls der Nutzer nur einen Workflow-Namen, aber keine BPMN
+  geliefert hat.
+-->
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:camunda="http://camunda.org/schema/1.0/bpmn"
+                  id="Definitions_{{workflowId}}"
+                  targetNamespace="https://mda.example.ch/bpmn">
+  <bpmn:process id="{{workflowId}}" name="{{workflowName}}" isExecutable="true">
+    <bpmn:startEvent id="Start"/>
+    <bpmn:endEvent id="End"/>
+    <bpmn:sequenceFlow id="f1" sourceRef="Start" targetRef="End"/>
+  </bpmn:process>
+</bpmn:definitions>

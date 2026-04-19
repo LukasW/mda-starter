@@ -1,0 +1,81 @@
+// Template: src/test/java/{{pkg_path}}/bdd/service/{{Aggregate}}ServiceSteps.java
+package {{PackageBase}}.bdd.service;
+
+import io.cucumber.java.de.Angenommen;
+import io.cucumber.java.de.Dann;
+import io.cucumber.java.de.Und;
+import io.cucumber.java.de.Wenn;
+import io.quarkus.test.junit.QuarkusTest;
+import io.restassured.response.Response;
+
+import java.util.UUID;
+
+import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.*;
+
+/** @QuarkusTest wird auf der Runner-Klasse ignoriert, hier aber benötigt, damit CDI/HTTP greifen. */
+@QuarkusTest
+public class {{Aggregate}}ServiceSteps {
+
+    private String tenantId;
+    private Response lastResponse;
+    private String lastId;
+
+    @Angenommen("^ein leerer {{Aggregate}}-Store$")
+    public void einLeererStore() {
+        tenantId = UUID.randomUUID().toString();
+    }
+
+    @Angenommen("^ein {{Aggregate}} mit Email \"([^\"]+)\" existiert$")
+    public void einExistierenderKontakt(String email) {
+        lastResponse = given().contentType("application/json")
+                .body("""
+                      {"tenantId":"%s","fullName":"Existing","email":"%s"}
+                      """.formatted(tenantId, email))
+                .post("/api/v1/{{bc_plural}}");
+        lastId = lastResponse.jsonPath().getString("id");
+        assertEquals(201, lastResponse.statusCode());
+    }
+
+    @Wenn("^ein {{Aggregate}} mit Name \"([^\"]+)\" und Email \"([^\"]+)\" registriert wird$")
+    public void einKontaktWirdRegistriert(String name, String email) {
+        lastResponse = given().contentType("application/json")
+                .body("""
+                      {"tenantId":"%s","fullName":"%s","email":"%s"}
+                      """.formatted(tenantId, name, email))
+                .post("/api/v1/{{bc_plural}}");
+        if (lastResponse.statusCode() == 201) {
+            lastId = lastResponse.jsonPath().getString("id");
+        }
+    }
+
+    @Wenn("^ein weiterer {{Aggregate}} mit Email \"([^\"]+)\" registriert wird$")
+    public void einWeitererKontaktWirdRegistriert(String email) {
+        lastResponse = given().contentType("application/json")
+                .body("""
+                      {"tenantId":"%s","fullName":"Other","email":"%s"}
+                      """.formatted(tenantId, email))
+                .post("/api/v1/{{bc_plural}}");
+    }
+
+    @Dann("^ist der Status \"([^\"]+)\"$")
+    public void istDerStatus(String status) {
+        given().get("/api/v1/{{bc_plural}}/" + lastId)
+                .then().statusCode(200)
+                .body("status", org.hamcrest.Matchers.equalTo(status));
+    }
+
+    @Und("^ein Domain-Event \"([^\"]+)\" wurde ausgelöst$")
+    public void einEventWurdeAusgeloest(String eventName) {
+        // Variante 1: In-Memory-Publisher inspectable via CDI-Inject (@Inject)
+        // Variante 2: Lazy check über Logs oder eine Test-only Ressource
+        // Die Generator-Pipeline legt einen @Inject InMemoryDomainEventPublisher in einer @TestScope
+        // Klasse an und prüft hier. Siehe bdd-EventInspector.java.tmpl.
+    }
+
+    @Dann("^wird die Anfrage mit HTTP (\\d+) und Code \"([^\"]+)\" abgewiesen$")
+    public void wirdMitCodeAbgewiesen(int status, String code) {
+        assertEquals(status, lastResponse.statusCode());
+        assertEquals(code, lastResponse.jsonPath().getString("code"));
+    }
+}

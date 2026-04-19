@@ -1,0 +1,39 @@
+// Template: adapter/in/rest/{{Aggregate}}Resource.java
+package {{PackageBase}}.{{bc}}.adapter.in.rest;
+
+import {{PackageBase}}.{{bc}}.application.port.in.*;
+import {{PackageBase}}.{{bc}}.domain.{{Aggregate}}Id;
+import jakarta.inject.Inject;
+import jakarta.validation.Valid;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+
+import java.net.URI;
+
+@Path("/api/v1/{{bc_plural}}")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+public class {{Aggregate}}Resource {
+
+    @Inject Register{{Aggregate}}UseCase register;
+    @Inject Get{{Aggregate}}ByIdQuery getById;
+    // weitere Ports…
+
+    @POST
+    public Response register(@Valid Register{{Aggregate}}Request req) {
+        {{Aggregate}}Id id = register.execute(
+                new Register{{Aggregate}}UseCase.Register{{Aggregate}}Command(/* aus req */));
+        return Response.created(URI.create("/api/v1/{{bc_plural}}/" + id.asString()))
+                .entity(new RegisterResponse(id.asString()))
+                .build();
+    }
+
+    @GET
+    @Path("/{id}")
+    public {{Aggregate}}Dto getById(@PathParam("id") String id) {
+        return {{Aggregate}}Dto.of(getById.execute({{Aggregate}}Id.parse(id)));
+    }
+
+    public record RegisterResponse(String id) {}
+}
