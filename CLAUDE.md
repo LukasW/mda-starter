@@ -1,21 +1,24 @@
 <!-- mda-generator:begin -->
 # CLAUDE.md — Quarkus MDA Starter
 
-Dieses Dokument orientiert Claude Code im Projekt. Es beschreibt **nur** Architektur, Harness und Workflow — fachliche Inhalte stehen in der Fachspec.
+Dieses Dokument orientiert Claude Code im Projekt. Es beschreibt **nur** Architektur, Harness und Workflow — fachliche Inhalte stehen in der Fachspec, die pro Projekt angelegt wird.
 
-## Fachliche Spezifikation (PFLICHT)
+## Zustand: leerer Starter
 
-**Vor jedem fachlichen Task lesen:** [`specs/model/00-spec-clm-mvp-v1.md`](specs/model/00-spec-clm-mvp-v1.md)
+**Dieses Repository enthaelt noch keine Fachspec und keinen Applikationscode.** Es ist das MDA-Grundgeruest: Harness (`.claude/`), Maven-Setup (`pom.xml`, `mvnw`), Quarkus-Dockerfiles unter `src/main/docker/`, Cucumber-JUnit-Konfiguration unter `src/test/resources/` und Doku-Skelette (`specs/features/`).
 
-Diese Datei ist die einzige fachliche Quelle: Bounded Contexts, Rollen, REST-Pfade, BPF-Prozesse, Flyway-Tabellen, Frontend-Seiten, Event-Topics, Out-of-Scope. **Alle Abweichungen zwischen Code und Spec sind Bugs** — entweder Code anpassen oder Spec explizit aendern (mit ADR in `docs/architecture/adr/`).
+Der naechste Schritt ist immer **`/mda-init`**. Eingabe:
 
-Abgeleitete Modelle: `specs/model/*.puml` (PlantUML).
+- `specs/description.md` mit einer Freitext-/Markdown-Beschreibung der Zieldomaene, **oder**
+- `specs/model/*.puml` (PlantUML-Klassen-/State-/Process-Diagramme), optional `*.bpmn`, `*.rules.yaml`.
+
+`/mda-init` erzeugt: Fachspec unter `specs/model/00-spec-<slug>.md`, DDD-Aggregates, Ports/Adapter, BPF, Angular-App via `ng new webui`, Flyway-Start-Migrationen, ArchitectureTest, BDD-Skelette, `docs/architecture/arc42.md` + ADRs 0001..0009. Danach gilt: **Fachspec ist die einzige fachliche Quelle**, Abweichungen Code↔Spec sind Bugs.
 
 ## Was ist das?
 
-Quarkus 3.34.5 MDA-Referenz-Starter. Hexagonale Architektur (Port & Adapter), DDD, Business Process Flow (BPF) als Panache-Zustandsautomat. Angular 21 + Material SPA unter `src/main/webui`, via Quarkus Quinoa 2.8.1 in den Backend-Build integriert.
+Quarkus 3.34.5 MDA-Starter. Er *wird*, nach `mda-init`: hexagonale Architektur (Port & Adapter), DDD, Business Process Flow (BPF) als Panache-Zustandsautomat, Angular 21 + Material SPA unter `src/main/webui`, via Quarkus Quinoa 2.8.1 in den Backend-Build integriert.
 
-Die **verbindlichen MDA-Regeln** liegen vollstaendig unter `.claude/skills/_shared/`.
+Die **verbindlichen MDA-Regeln** liegen vollstaendig unter `.claude/skills/_shared/` — sie sind auch im leeren Starter bereits bindend fuer `mda-init`.
 
 ## Schnellstart
 
@@ -32,7 +35,7 @@ Dev-Endpunkte:
 
 REST-Pfade: siehe Fachspec.
 
-## Paket-Layout (je BC identisch)
+## Paket-Layout (je BC identisch, nach `mda-init`)
 
 ```
 <root-package>
@@ -54,7 +57,7 @@ REST-Pfade: siehe Fachspec.
 
 Konkrete BC- und Root-Package-Namen: **Fachspec**.
 
-## Frontend (Angular 21 + Material)
+## Frontend (Angular 21 + Material, nach `mda-init`)
 
 ```
 src/main/webui/
@@ -157,10 +160,10 @@ Tag-Konvention + Verhaeltnis: `.claude/skills/_shared/testing-pyramid.md`.
 
 Flyway-Migrationen sind **additiv**: `V<n>__<slug>.sql`. Bestehende V-Dateien sind unveraenderlich. Konkrete Tabellen und Migrationsstand: **Fachspec**.
 
-## Weitere Dokumente
+## Weitere Dokumente (werden von `/mda-init` erzeugt, solange der Starter leer ist)
 
-- `specs/model/00-spec-clm-mvp-v1.md` — **Fachliche Spezifikation (Pflicht)**.
-- `specs/model/*.puml` — PlantUML-Modelle (fuer `mda-init`).
+- `specs/model/00-spec-<slug>.md` — **Fachliche Spezifikation (Pflicht)**, einzige fachliche Quelle.
+- `specs/model/*.puml` — PlantUML-Modelle (Input fuer `mda-init` oder Output nach Initialisierung).
 - `specs/features/*.md` — Feature-Specs, je eine pro Feature (fuer `mda-plan`/`mda-implement`).
 - `plan/*.md` — Impact-Plaene (fuer `mda-implement`).
 - `docs/architecture/arc42.md` — C4-Modell + Laufzeitsicht je Prozess.
