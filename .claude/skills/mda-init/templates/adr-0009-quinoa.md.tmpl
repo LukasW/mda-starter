@@ -1,0 +1,39 @@
+# ADR 0009 — Angular {{angular_version}} + Material via Quarkus Quinoa
+
+- Status: accepted
+- Datum: {{date}}
+
+## Kontext
+
+Backend und UI sollen aus **einer** Codebasis baubar sein (ein JAR, ein Deployment-Artefakt), ohne separates Repo. Entwickler-Experience: ein `./mvnw quarkus:dev` startet REST-Service **und** UI mit HMR.
+
+## Entscheid
+
+- Frontend-Stack: **Angular {{angular_version}} + Angular Material {{angular_version}}** (Azure/Blue-Palette, M3-Theme).
+- Gesamte Angular-App liegt unter `src/main/webui/`, gescaffoldet per `ng new webui …`; alle Artefakte via `ng generate`.
+- Integration: **Quarkus Quinoa {{quinoa_version}}** startet `ng serve` (Port 4200) als Dev-Service im `quarkus:dev`, proxyt unbehandelte HTTP-Requests dorthin, und fuehrt `ng build` im `mvn package`-Lauf aus. Build-Output (`dist/webui/browser/`) wird als statische Resources ins Quarkus-Artifact eingebettet.
+
+Angular Best-Practices:
+
+- **Standalone Components** mit `ChangeDetectionStrategy.OnPush`.
+- **`inject()`** statt Constructor-DI.
+- **Signals** fuer lokalen State; Observables an Service-Grenzen.
+- **Reactive Forms** mit `fb.nonNullable.group(...)`.
+- **Lazy Routes** via `loadComponent`.
+- **Material 3 Theme** in `src/styles.scss` via `mat.theme()`.
+
+## Proxy-Loop-Schutz
+
+Zwei Massnahmen:
+
+1. `quarkus.quinoa.ignored-path-prefixes=/api,/q,/openapi` — Quinoa leitet REST-Pfade nie an den Dev-Server.
+2. `angular.json`: `proxyConfig` steht in einer separaten `standalone`-Konfiguration (nur fuer `ng serve --configuration standalone`), nicht in der Default-`development`-Konfiguration.
+
+## Konsequenzen
+
+- `./mvnw clean verify` ruft `ng build` mit auf (~5 s Overhead).
+- Prod-Artefakt: ein JAR mit eingebetteter SPA.
+- Benoetigt System-Node >= 22 (fuer isolierte Builds: `package-manager-install=true` + `node-version`).
+- Angular SSR deaktiviert (`--ssr=false` beim Scaffold).
+- Budget in `angular.json` auf 800 kB / 1.5 MB (initial) angehoben (Material-Theme).
+- OpenAPI-Codegen fuer TypeScript-Models ist noch nicht verdrahtet; `src/app/core/models.ts` spiegelt die Java-DTOs manuell. V1.1: `openapi-generator-cli` oder `orval`.

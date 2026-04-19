@@ -5,13 +5,15 @@ Dieses Dokument orientiert Claude Code im Projekt. Es ersetzt kein ausfuehrliche
 
 ## Was ist das?
 
-Referenz-Starter fuer **Contract Lifecycle Management (CLM) MVP V1** auf Quarkus 3.34.5 gemaess MDA-Ansatz (`specs/MDA-Spezifikation.md`, `specs/MDA-Quarkus-Stack.md`). Drei Bounded Contexts: `contract`, `approval`, `obligation`. Hexagonale Architektur (Port & Adapter), DDD, Business Process Flow (BPF) als Panache-Zustandsautomat. Angular 21 + Material SPA unter `src/main/webui`, via Quarkus Quinoa 2.8.1 in den Backend-Build integriert.
+Referenz-Starter fuer **Contract Lifecycle Management (CLM) MVP V1** auf Quarkus 3.34.5 gemaess MDA-Ansatz. Drei Bounded Contexts: `contract`, `approval`, `obligation`. Hexagonale Architektur (Port & Adapter), DDD, Business Process Flow (BPF) als Panache-Zustandsautomat. Angular 21 + Material SPA unter `src/main/webui`, via Quarkus Quinoa 2.8.1 in den Backend-Build integriert.
+
+Die **verbindlichen MDA-Regeln** liegen vollstaendig unter `.claude/skills/_shared/` — das Projekt braucht keine externen `specs/MDA-*.md`-Dateien mehr.
 
 ## Schnellstart
 
 ```bash
-./mvnw quarkus:dev      # Backend (:8080) + Angular dev-server (:4200) via Quinoa
-./mvnw clean verify     # Unit + @QuarkusTest + Cucumber + ng build
+./mvnw quarkus:dev       # Backend (:8080) + Angular dev-server (:4200) via Quinoa
+./mvnw clean verify      # Unit + @QuarkusTest + Cucumber + ng build
 ./scripts/count-tests.sh # Testpyramide pruefen
 ```
 
@@ -65,8 +67,7 @@ Konventionen:
 - Services gehen ueber `ApiClient` (Fehlerkanal: `ProblemDetail` → `ApiError`).
 - Dev-Proxy `/api`, `/q`, `/openapi` → `http://localhost:8080` (`proxy.conf.json`).
 
-Build-Output: `src/main/webui/dist/webui/browser/` (Angular @angular/build:application).
-Quinoa packt das in das Quarkus-Artifact und serviert es unter `/`.
+Build-Output: `src/main/webui/dist/webui/browser/` (Angular `@angular/build:application`). Quinoa packt das in das Quarkus-Artifact.
 
 ## Regeln (erzwungen per ArchUnit)
 
@@ -75,12 +76,54 @@ Quinoa packt das in das Quarkus-Artifact und serviert es unter `/`.
 - REST-Adapter ruft **nur** Eingangs-Ports (`port.in`), niemals direkt Anwendungsservice oder Out-Adapter.
 - Bounded-Context-uebergreifende Kopplung: **nur via IDs oder Events**, nie via Services/Adaptern.
 
+Details: `.claude/skills/_shared/hexagonal-rules.md`.
+
 ## BPF — Vertragslifecycle + Fristenerinnerung
 
 - Definitionen in `…domain/VertragLifecycle.java` bzw. `…domain/FristenErinnerungProcess.java`.
 - Laufzeit in `shared/process/BpfService`. Jede Transition schreibt Audit-Log-Eintrag.
 - Ungueltige Uebergaenge werfen `DomainException` mit Code `MDA-BPF-001`.
 - REST-Ausspielung: zuerst Aggregat-Seiteneffekt (einreichen/genehmigen/…), dann BPF-Transition in derselben Transaktion.
+
+Details: `.claude/skills/_shared/bpf-guide.md`.
+
+## Die fuenf Skills
+
+Die gesamte MDA-Toolchain liegt im Repo unter `.claude/skills/` — keine globale Abhaengigkeit. Genau **fuenf** Skills, ein Workflow:
+
+| Skill | Zweck | Phase |
+|---|---|---|
+| `/mda-init` | Erstentwurf des Projekts aus **Beschreibung** (Freitext/Markdown) ODER **PlantUML/BPMN/Rules-DSL** | einmalig |
+| `/mda-plan <beschreibung>` | Feature planen: `specs/features/<slug>.md` + `plan/<slug>.md`, wartet auf Bestaetigung | pro Feature |
+| `/mda-implement <slug> [--worktree]` | Plan umsetzen: Branch, Delta, Tests, Reviewer-Agents, Commit, PR | pro Feature |
+| `/mda-ship` | CI abwarten, PR squash-mergen, Issue schliessen, Cleanup | pro Feature |
+| `/mda-fast <beschreibung>` | `mda-plan` → (Bestaetigung wenn noetig) → `mda-implement` → `mda-ship` | bei klaren Features |
+
+**Shared-Regeln** (normativ, gelten fuer alle Skills):
+
+- `.claude/skills/_shared/mda-spec.md` — MDA-Spezifikation (Prinzipien, Artefakte, API-Konvention).
+- `.claude/skills/_shared/mda-stack.md` — Quarkus-Stack (Versionen, Extensions).
+- `.claude/skills/_shared/hexagonal-rules.md` — Paket-Layout.
+- `.claude/skills/_shared/bpf-guide.md` — BPF-Engine.
+- `.claude/skills/_shared/testing-pyramid.md` — Testverhaeltnis + Tags.
+- `.claude/skills/_shared/drift-guards.md` — Was nie angefasst werden darf.
+- `.claude/skills/_shared/feature-spec-template.md` — Feature-Spec-Template.
+- `.claude/skills/_shared/dod-checklist.md` — Definition of Done.
+
+## Feature-First-Workflow (verpflichtend)
+
+Jede fachliche Erweiterung (neues Aggregate, neuer Use-Case, neue BPF-Transition, neuer Screen, neues Feld) laeuft **immer** ueber den `mda-plan` → `mda-implement` → `mda-ship`-Workflow, niemals direkt ueber Hand-Edit.
+
+**Direkter Edit in `src/main/java/…/domain/` oder `…/application/` ist nicht erlaubt** — ausser:
+
+- unterhalb eines `// mda-generator: manual-edits-below`-Markers (wird beim Regenerieren nicht ueberschrieben); oder
+- in `config/`, `shared/` (dort sind Rahmen-Entscheide erlaubt).
+
+**Gleiches fuer das Frontend**: neue Seiten per `ng generate component pages/<name>`, neue Services per `ng generate service core/<name>` — nicht manuell anlegen.
+
+**Drift-Guards** (siehe `.claude/skills/_shared/drift-guards.md`): bestehende Flyway-Migrationen, Aggregate-Public-API-Umbenennungen, sealed-permit-Entfernungen, Aufweichung von ArchUnit-Regeln, Umbenennung von REST-Pfaden ohne Versions-Bump.
+
+**Bei Unsicherheit**: zuerst fragen, nicht einfach loscoden.
 
 ## Out of MVP Scope (bewusst weggelassen)
 
@@ -96,15 +139,22 @@ Quinoa packt das in das Quarkus-Artifact und serviert es unter `/`.
 - ArchitectureTest prueft Schichten- und BC-Grenzen.
 - Pyramiden-Heuristik: `./scripts/count-tests.sh`.
 
+Tag-Konvention + Verhaeltnis: `.claude/skills/_shared/testing-pyramid.md`.
+
 ## Datenmodell
 
 Flyway-Migrationen:
+
 - `V1__init.sql` — `vertrag`, `dokument_version`, `freigabe`, `frist`.
 - `V2__bpf.sql` — `bpf_instance`, `bpf_transition_log`.
+
+Neue Migrationen sind **additiv**: `V<n>__<slug>.sql`. Bestehende V-Dateien sind unveraenderlich.
 
 ## Weitere Dokumente
 
 - `docs/architecture/arc42.md` — C4-Modell + Laufzeitsicht je Prozess.
 - `docs/architecture/adr/*.md` — Architekturentscheide.
-- `specs/model/*.puml` — Modell-Quellen, aus denen dieser Code generiert wurde.
+- `specs/model/*.puml` — optionale PlantUML-Modelle (fuer `mda-init`).
+- `specs/features/*.md` — Feature-Specs, je eine pro Feature (fuer `mda-plan`/`mda-implement`).
+- `plan/*.md` — Impact-Plaene (fuer `mda-implement`).
 <!-- mda-generator:end -->

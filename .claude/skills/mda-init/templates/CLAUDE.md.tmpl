@@ -1,0 +1,110 @@
+# CLAUDE.md
+
+## Was dieses Repo tut
+{{project_purpose}}
+
+Modellgetriebene Quarkus-Applikation nach `specs/MDA-Spezifikation.md` und `specs/MDA-Quarkus-Stack.md`.
+Die fachliche Struktur wird aus PlantUML-Klassendiagrammen in `specs/model/*.puml` generiert.
+
+## Kommandos
+
+| Zweck | Kommando |
+|---|---|
+| Dev-Server (Live-Reload, Dev-UI unter /q/dev) | `./mvnw quarkus:dev` |
+| Alle Tests (Unit + IT + BDD) | `./mvnw -DskipITs=false verify` |
+| Nur Unit | `./mvnw -q test` |
+| Nur Service-BDD | `./mvnw -DskipITs=false verify -Dit.test=ServiceBddIT` |
+| Nur UI-BDD | `./mvnw -DskipITs=false verify -Dit.test=UiBddIT` |
+| Package (JVM) | `./mvnw -DskipTests package` |
+| Native-Build | `./mvnw -Pnative package` |
+
+## Architektur (Kurzfassung)
+
+Hexagonal (Port & Adapter) pro Bounded Context:
+
+```
+ch.grudligstrasse.mda.<bc>
+├── domain/                   # DDD: Aggregates, VOs, Events — 0 Framework-Imports
+├── application/
+│   ├── port/in/              # Use-Case-Interfaces (Command/Query)
+│   ├── port/out/             # Repository-/Gateway-Interfaces
+│   └── service/              # @ApplicationScoped @Transactional Services
+├── adapter/
+│   ├── in/rest/              # JAX-RS, DTOs, Mapper
+│   └── out/persistence/      # Panache-Entities, Repository-Impl, Mapper
+└── config/                   # CDI-Producer
+```
+
+Regeln werden durch ArchUnit-Test `ArchitectureTest` erzwungen. **Nicht umgehen.**
+
+## Konventionen
+
+- **IDs** sind getypte Value Objects (`ContactId`, nicht `UUID`).
+- **Value Objects** sind Java `record` mit Validierung im Compact Constructor.
+- **Domain Events** werden im Aggregate gesammelt; Services rufen `pullEvents()` und publishen über den `DomainEventPublisher`-Port.
+- **Fehler**: `DomainException`-Subklassen → zentrale `ExceptionMapper` → RFC 7807 Problem+JSON.
+- **Transaktionen**: `@Transactional` nur in `application.service`.
+
+## Test-Strategie
+
+Pyramide (absteigende Anzahl): Unit → Integration → BDD-Service → BDD-UI. Konkrete Zahlen stehen in `docs/architecture/testing.md`. Cucumber-Tags:
+
+- `@service` — Service-BDD (REST-Assured).
+- `@ui` — UI-BDD (Playwright headless; Fallback REST via `MDA_UI_MODE=rest`).
+- `@wip` — vom CI ausgeschlossen.
+
+## Modell-Quelle
+
+PlantUML-Klassendiagramme liegen in `specs/model/`. Bei Änderung: Skill `mda-plantuml` ausführen — generiert Domain + Adapter + Tests + Docs neu.
+
+## Neue Features — Model-First-Workflow (verpflichtend)
+
+Diese Applikation ist modellgetrieben. **Jede** fachliche Erweiterung (neues Aggregate, neuer Use-Case, neue BPF-Transition, neuer Screen, neues Feld) **muss** diesen Ablauf durchlaufen:
+
+1. **Modell ändern** in `specs/model/`:
+   - Neues oder erweitertes Aggregat / VO / Event / Enum → Klassendiagramm (`*.puml` mit `class …`).
+   - Neue oder geänderte State-Transition → State-Diagramm (`*.puml` mit `[*] -->`).
+   - Neuer Fach-Prozess → eigenes Activity-Diagramm (`*.puml` mit `start` + `:Aktion;`).
+   - Neue Architektur-Bausteine / Nachbarsysteme → Komponenten-Diagramm.
+2. **Skill neu laufen lassen**: `/mda-plantuml` (oder via Skill-Tool). Die Pipeline regeneriert Domain / Application / Adapter / BPF / Tests / Doku / Angular-Komponenten **idempotent** — manuelle Tweaks bleiben erhalten, sofern sie unter einem Marker stehen (siehe unten).
+3. **Review**: `./mvnw clean verify` muss gruen bleiben; ArchUnit-Regeln und Testpyramide sind nicht zu umgehen.
+
+**Direkter Edit in `src/main/java/…/domain/` oder `…/application/` ist nicht erlaubt** — ausser:
+
+- unterhalb eines `// mda-generator: manual-edits-below`-Markers (wird beim Regenerieren nicht überschrieben); oder
+- in `config/`, `shared/` (dort sind Rahmen-Entscheide erlaubt).
+
+**Gleiches fürs Frontend**: neue Seiten / Services per `ng generate` scaffolden — nicht manuell anlegen. Angular-Layout und Routen werden vom `frontend-architect`-Agent aus den Model-Dateien abgeleitet.
+
+**Bei Unsicherheit**: zuerst fragen, nicht einfach loscoden.
+
+## Metamodell-/Spec-Verweise
+
+- Architekturleitfaden: `specs/MDA-Spezifikation.md`
+- Stack-Entscheidungen: `specs/MDA-Quarkus-Stack.md`
+- arc42 der Applikation: `docs/architecture/arc42.md`
+- ADRs: `docs/architecture/adr/`
+
+## Frontend (Angular + Material via Quinoa)
+
+```
+src/main/webui/
+  angular.json, tsconfig*.json, proxy.conf.json, package.json
+  src/app/
+    app.ts, app.config.ts, app.routes.ts
+    core/                 Services (api-client + <bc>) + models.ts
+    layout/app-shell/     MatToolbar + MatSidenav + RouterOutlet
+    pages/                Standalone-Components je Screen (liste, erfassen, detail)
+```
+
+Konventionen: Standalone-Components, `ChangeDetectionStrategy.OnPush`, `inject()`, Signals, Reactive Forms, lazy-loaded Routes, Material-3-Theme.
+
+**Proxy-Loop-Schutz (wichtig)**: `quarkus.quinoa.ignored-path-prefixes=/api,/q,/openapi`. `proxyConfig` in `angular.json` nur in `serve.configurations.standalone`, nicht in `development`. Details: `references/angular-quinoa-guide.md` im Skill.
+
+Build-Output: `src/main/webui/dist/webui/browser/` → Quinoa integriert es ins Quarkus-JAR.
+
+## Bekannte Einschränkungen
+
+- UI-BDD nutzt standardmässig REST-Proxy, solange kein Playwright-Setup verdrahtet ist (`MDA_UI_MODE=playwright` aktiviert echten Browser).
+- Multi-Tenancy per RLS (Spec Kap. 5.4) ist in Flyway vorgesehen, aber ohne Keycloak-Token nicht scharf gestellt — Dev-Profil nutzt fixe `tenant_id`.
+- OpenAPI → TypeScript Codegen noch nicht verdrahtet; `src/main/webui/src/app/core/models.ts` spiegelt die Java-DTOs manuell.

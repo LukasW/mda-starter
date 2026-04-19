@@ -30,6 +30,7 @@
         <cucumber.version>{{cucumber_version}}</cucumber.version>
         <junit.version>{{junit_version}}</junit.version>
         <archunit.version>{{archunit_version}}</archunit.version>
+        <quinoa.version>{{quinoa_version}}</quinoa.version>
     </properties>
 
     <dependencyManagement>
@@ -71,6 +72,14 @@
         <dependency><groupId>io.quarkus</groupId><artifactId>quarkus-hibernate-orm-panache</artifactId></dependency>
         <dependency><groupId>io.quarkus</groupId><artifactId>quarkus-jdbc-h2</artifactId></dependency>
         <dependency><groupId>io.quarkus</groupId><artifactId>quarkus-flyway</artifactId></dependency>
+
+        <!-- Frontend-Integration (Quinoa) — nur notwendig, wenn src/main/webui/ scaffolded ist.
+             Version muss zur Quarkus-Major passen (Quinoa 2.8.x fuer Quarkus 3.30+). -->
+        <dependency>
+            <groupId>io.quarkiverse.quinoa</groupId>
+            <artifactId>quarkus-quinoa</artifactId>
+            <version>${quinoa.version}</version>
+        </dependency>
 
         <!-- Tests -->
         <dependency><groupId>io.quarkus</groupId><artifactId>quarkus-junit5</artifactId><scope>test</scope></dependency>

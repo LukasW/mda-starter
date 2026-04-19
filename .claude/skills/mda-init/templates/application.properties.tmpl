@@ -23,3 +23,19 @@ quarkus.smallrye-health.root-path=/q/health
 %test.quarkus.datasource.jdbc.url=jdbc:h2:mem:mda-test;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE
 %test.quarkus.flyway.clean-at-start=true
 %test.quarkus.flyway.clean-disabled=false
+
+# --- Frontend (Angular + Material via Quarkus Quinoa) ---
+# Nur aktiv, wenn src/main/webui/ existiert. Details: references/angular-quinoa-guide.md
+quarkus.quinoa.ui-dir=src/main/webui
+# Angular @angular/build:application bundelt nach dist/<project>/browser/ (hier: webui).
+quarkus.quinoa.build-dir=dist/webui/browser
+quarkus.quinoa.package-manager=npm
+# Verwendet System-Node (>=22). Fuer isolierte Installation: package-manager-install=true
+# + quarkus.quinoa.package-manager-install.node-version=22.13.0.
+quarkus.quinoa.package-manager-install=false
+quarkus.quinoa.dev-server.port=4200
+quarkus.quinoa.enable-spa-routing=true
+# WICHTIG: verhindert Proxy-Loop — Backend-Pfade NIE an ng serve weiterleiten.
+quarkus.quinoa.ignored-path-prefixes=/api,/q,/openapi
+# In @QuarkusTest deaktivieren, damit Surefire nicht ng build triggert.
+%test.quarkus.quinoa.enabled=false

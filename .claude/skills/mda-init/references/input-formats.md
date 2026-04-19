@@ -37,3 +37,7 @@ Abweichende Ablagen sind erlaubt — der Skill scannt unterhalb von `specs/` rek
 - **Mehrere BPMN** → alle deployed; separate Worker-Klassen.
 - **Regeln, die auf unbekannte Felder referenzieren** → Hard-Fail mit Fehlerliste.
 - **Prozess-Transition, deren Ziel-Stage nicht definiert ist** → Hard-Fail.
+
+## Frontend (immer mitgeneriert)
+
+Es gibt **keinen** Input-Typ fuer das Frontend — das Angular-21-+-Material-SPA unter `src/main/webui/` wird immer mitgeneriert (`frontend-architect`-Agent, Phase 4b). Seiten/Services ergeben sich aus den Aggregates und Use-Cases des Klassendiagramms; BPF-Stages erzeugen Action-Buttons in der Detail-Komponente. Details: `references/angular-quinoa-guide.md`.
